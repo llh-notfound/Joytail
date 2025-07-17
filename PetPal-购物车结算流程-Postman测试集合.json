@@ -1,0 +1,988 @@
+{
+  "info": {
+    "name": "PetPal 购物车结算流程 API 测试集合",
+    "description": "PetPal 购物车结算流程完整API测试用例\n\n测试环境配置：\n- 基础URL: {{base_url}}\n- 认证Token: {{auth_token}}\n- 用户ID: {{user_id}}\n\n测试顺序：\n1. 购物车管理\n2. 订单创建\n3. 订单支付\n4. 订单查询\n\n版本: v1.0.0\n创建日期: 2025-07-14",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your_test_token_here",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "user_001",
+      "type": "string"
+    },
+    {
+      "key": "cart_item_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_number",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 购物车管理",
+      "item": [
+        {
+          "name": "1.1 添加商品到购物车",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goodsId\": \"goods_001\",\n  \"quantity\": 2,\n  \"specs\": \"2.5kg装\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add"]
+            },
+            "description": "添加商品到购物车\n\n测试要点：\n- 验证商品ID有效性\n- 检查库存充足性\n- 处理重复添加逻辑"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has required fields\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('code');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson).to.have.property('data');",
+                  "});",
+                  "",
+                  "pm.test(\"Addition successful\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.code).to.eql(200);",
+                  "    pm.expect(responseJson.data).to.have.property('cartItemId');",
+                  "    ",
+                  "    // 保存购物车项ID供后续测试使用",
+                  "    pm.collectionVariables.set('cart_item_id', responseJson.data.cartItemId);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 获取购物车列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cart/list",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "list"]
+            },
+            "description": "获取当前用户的购物车列表\n\n测试要点：\n- 验证数据完整性\n- 检查金额计算准确性\n- 确认商品信息正确"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Cart data structure is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.data).to.have.property('items');",
+                  "    pm.expect(responseJson.data).to.have.property('totalItems');",
+                  "    pm.expect(responseJson.data).to.have.property('totalAmount');",
+                  "    pm.expect(responseJson.data).to.have.property('selectedCount');",
+                  "    pm.expect(responseJson.data).to.have.property('selectedAmount');",
+                  "});",
+                  "",
+                  "pm.test(\"Cart items have required fields\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    if (responseJson.data.items.length > 0) {",
+                  "        const item = responseJson.data.items[0];",
+                  "        pm.expect(item).to.have.property('id');",
+                  "        pm.expect(item).to.have.property('goodsId');",
+                  "        pm.expect(item).to.have.property('name');",
+                  "        pm.expect(item).to.have.property('price');",
+                  "        pm.expect(item).to.have.property('quantity');",
+                  "        pm.expect(item).to.have.property('selected');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 更新购物车商品数量",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartItemId\": \"{{cart_item_id}}\",\n  \"quantity\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/update",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "update"]
+            },
+            "description": "更新购物车中商品的数量\n\n测试要点：\n- 验证数量合法性\n- 检查库存限制\n- 确认更新成功"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Update successful\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.code).to.eql(200);",
+                  "    pm.expect(responseJson.message).to.include('成功');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 更新商品选中状态",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartItemId\": \"{{cart_item_id}}\",\n  \"selected\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/select",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "select"]
+            },
+            "description": "更新购物车商品的选中状态\n\n测试要点：\n- 验证状态更新正确\n- 检查权限控制\n- 确认响应及时"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. 订单创建",
+      "item": [
+        {
+          "name": "2.1 创建订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartItemIds\": [\"{{cart_item_id}}\"],\n  \"addressId\": \"addr_001\",\n  \"message\": \"请小心轻放，谢谢！\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/order/create",
+              "host": ["{{base_url}}"],
+              "path": ["order", "create"]
+            },
+            "description": "创建新订单\n\n测试要点：\n- 验证购物车项有效性\n- 检查地址信息正确性\n- 确认金额计算准确性\n- 验证库存扣减逻辑"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order created successfully\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.code).to.eql(200);",
+                  "    pm.expect(responseJson.data).to.have.property('orderNumber');",
+                  "    pm.expect(responseJson.data).to.have.property('totalAmount');",
+                  "    pm.expect(responseJson.data).to.have.property('status');",
+                  "    ",
+                  "    // 保存订单信息供后续测试使用",
+                  "    pm.collectionVariables.set('order_number', responseJson.data.orderNumber);",
+                  "    pm.collectionVariables.set('order_id', responseJson.data.id || responseJson.data.orderNumber);",
+                  "});",
+                  "",
+                  "pm.test(\"Order amount calculation is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data.totalAmount).to.be.a('number');",
+                  "    pm.expect(data.goodsAmount).to.be.a('number');",
+                  "    pm.expect(data.payableAmount).to.be.a('number');",
+                  "    pm.expect(data.totalAmount).to.be.at.least(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 获取订单详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/detail/{{order_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["order", "detail", "{{order_number}}"]
+            },
+            "description": "获取订单详细信息\n\n测试要点：\n- 验证订单信息完整性\n- 检查商品列表正确性\n- 确认地址信息准确性"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order detail structure is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('orderNumber');",
+                  "    pm.expect(data).to.have.property('status');",
+                  "    pm.expect(data).to.have.property('totalAmount');",
+                  "    pm.expect(data).to.have.property('items');",
+                  "    pm.expect(data).to.have.property('address');",
+                  "});",
+                  "",
+                  "pm.test(\"Order items are valid\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const items = responseJson.data.items;",
+                  "    pm.expect(items).to.be.an('array');",
+                  "    if (items.length > 0) {",
+                  "        const item = items[0];",
+                  "        pm.expect(item).to.have.property('goodsId');",
+                  "        pm.expect(item).to.have.property('name');",
+                  "        pm.expect(item).to.have.property('price');",
+                  "        pm.expect(item).to.have.property('quantity');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. 订单支付",
+      "item": [
+        {
+          "name": "3.1 发起订单支付",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"wechat\",\n  \"paymentChannel\": \"h5\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/order/pay/{{order_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["order", "pay", "{{order_number}}"]
+            },
+            "description": "发起订单支付\n\n测试要点：\n- 验证订单状态合法性\n- 检查支付参数生成\n- 确认支付渠道正确"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Payment initiation successful\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.code).to.eql(200);",
+                  "    pm.expect(responseJson.data).to.have.property('paymentOrderId');",
+                  "});",
+                  "",
+                  "pm.test(\"Payment info is provided\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('paymentInfo');",
+                  "    pm.expect(data).to.have.property('expireTime');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 查询支付状态",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/pay-status/{{order_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["order", "pay-status", "{{order_number}}"]
+            },
+            "description": "查询订单支付状态\n\n测试要点：\n- 验证支付状态准确性\n- 检查支付时间记录\n- 确认状态同步及时"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Payment status structure is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('orderNumber');",
+                  "    pm.expect(data).to.have.property('paymentStatus');",
+                  "    pm.expect(data).to.have.property('paymentAmount');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 模拟支付回调",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderNumber\": \"{{order_number}}\",\n  \"paymentOrderId\": \"pay_test_001\",\n  \"paymentStatus\": \"success\",\n  \"paymentAmount\": 268.00,\n  \"transactionId\": \"wx_test_transaction_001\",\n  \"paymentTime\": \"2025-07-14T10:30:00Z\",\n  \"signature\": \"test_signature\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/order/pay-callback",
+              "host": ["{{base_url}}"],
+              "path": ["order", "pay-callback"]
+            },
+            "description": "模拟第三方支付平台回调\n\n注意：这是内部测试接口，生产环境中应该删除或保护\n\n测试要点：\n- 验证签名校验逻辑\n- 检查订单状态更新\n- 确认库存扣减正确"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. 订单查询",
+      "item": [
+        {
+          "name": "4.1 获取订单列表 - 全部",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/goods-list?status=all&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["order", "goods-list"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "all"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取用户所有订单列表\n\n测试要点：\n- 验证分页功能正确\n- 检查数据结构完整\n- 确认权限控制有效"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Order list structure is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('items');",
+                  "    pm.expect(data).to.have.property('total');",
+                  "    pm.expect(data).to.have.property('page');",
+                  "    pm.expect(data).to.have.property('pageSize');",
+                  "    pm.expect(data).to.have.property('hasMore');",
+                  "});",
+                  "",
+                  "pm.test(\"Order items have required fields\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const items = responseJson.data.items;",
+                  "    if (items.length > 0) {",
+                  "        const order = items[0];",
+                  "        pm.expect(order).to.have.property('orderNumber');",
+                  "        pm.expect(order).to.have.property('status');",
+                  "        pm.expect(order).to.have.property('totalAmount');",
+                  "        pm.expect(order).to.have.property('createTime');",
+                  "    }",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 获取订单列表 - 待付款",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/goods-list?status=pending_payment&page=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["order", "goods-list"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending_payment"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "获取待付款订单列表\n\n测试要点：\n- 验证状态筛选正确\n- 检查过期时间显示\n- 确认操作按钮逻辑"
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 获取订单统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/stats",
+              "host": ["{{base_url}}"],
+              "path": ["order", "stats"]
+            },
+            "description": "获取用户订单统计信息\n\n测试要点：\n- 验证统计数据准确性\n- 检查各状态计数正确\n- 确认实时性要求"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Stats structure is correct\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    pm.expect(data).to.have.property('pendingPayment');",
+                  "    pm.expect(data).to.have.property('paid');",
+                  "    pm.expect(data).to.have.property('shipped');",
+                  "    pm.expect(data).to.have.property('delivered');",
+                  "    pm.expect(data).to.have.property('completed');",
+                  "    pm.expect(data).to.have.property('totalOrders');",
+                  "});",
+                  "",
+                  "pm.test(\"Stats data is numeric\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    const data = responseJson.data;",
+                  "    Object.values(data).forEach(value => {",
+                  "        pm.expect(value).to.be.a('number');",
+                  "        pm.expect(value).to.be.at.least(0);",
+                  "    });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. 订单操作",
+      "item": [
+        {
+          "name": "5.1 取消订单",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"不想要了\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/order/cancel/{{order_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["order", "cancel", "{{order_number}}"]
+            },
+            "description": "取消订单\n\n测试要点：\n- 验证订单状态可取消\n- 检查库存释放逻辑\n- 确认取消原因记录"
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 确认收货",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/confirm/{{order_number}}",
+              "host": ["{{base_url}}"],
+              "path": ["order", "confirm", "{{order_number}}"]
+            },
+            "description": "确认收货\n\n测试要点：\n- 验证订单状态合法性\n- 检查确认时间记录\n- 确认状态流转正确"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. 辅助功能",
+      "item": [
+        {
+          "name": "6.1 获取用户地址列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/addresses",
+              "host": ["{{base_url}}"],
+              "path": ["user", "addresses"]
+            },
+            "description": "获取用户收货地址列表\n\n测试要点：\n- 验证地址数据完整性\n- 检查默认地址标识\n- 确认权限控制正确"
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 获取可用优惠券",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/user/coupons/available?totalAmount=200",
+              "host": ["{{base_url}}"],
+              "path": ["user", "coupons", "available"],
+              "query": [
+                {
+                  "key": "totalAmount",
+                  "value": "200"
+                }
+              ]
+            },
+            "description": "获取用户可用优惠券列表\n\n测试要点：\n- 验证优惠券可用性\n- 检查使用条件判断\n- 确认过期时间有效"
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 获取待处理事项",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/order/pending-items",
+              "host": ["{{base_url}}"],
+              "path": ["order", "pending-items"]
+            },
+            "description": "获取用户待处理事项统计\n\n测试要点：\n- 验证计数准确性\n- 检查更新及时性\n- 确认业务逻辑正确"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. 错误场景测试",
+      "item": [
+        {
+          "name": "7.1 无效Token测试",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/cart/list",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "list"]
+            },
+            "description": "测试无效认证Token的处理\n\n期望结果：返回401未认证错误"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Error response structure\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson).to.have.property('code');",
+                  "    pm.expect(responseJson).to.have.property('message');",
+                  "    pm.expect(responseJson.code).to.eql(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.2 无效商品ID测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goodsId\": \"invalid_goods_id\",\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add"]
+            },
+            "description": "测试无效商品ID的处理\n\n期望结果：返回400参数错误"
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Error message is descriptive\", function () {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.expect(responseJson.message).to.be.a('string');",
+                  "    pm.expect(responseJson.message.length).to.be.above(0);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.3 库存不足测试",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"goodsId\": \"goods_001\",\n  \"quantity\": 999999\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/cart/add",
+              "host": ["{{base_url}}"],
+              "path": ["cart", "add"]
+            },
+            "description": "测试库存不足的处理\n\n期望结果：返回400错误并提示库存不足"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 全局前置脚本",
+          "console.log('准备执行API测试:', pm.info.requestName);",
+          "",
+          "// 检查必要的环境变量",
+          "if (!pm.collectionVariables.get('base_url')) {",
+          "    console.warn('警告: base_url 未设置');",
+          "}",
+          "",
+          "if (!pm.collectionVariables.get('auth_token')) {",
+          "    console.warn('警告: auth_token 未设置');",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 全局后置脚本",
+          "pm.test('Response time is acceptable', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+          "});",
+          "",
+          "pm.test('Response has timestamp', function () {",
+          "    if (pm.response.code === 200) {",
+          "        const responseJson = pm.response.json();",
+          "        pm.expect(responseJson).to.have.property('timestamp');",
+          "    }",
+          "});",
+          "",
+          "// 记录测试结果",
+          "const testResult = {",
+          "    request: pm.info.requestName,",
+          "    status: pm.response.code,",
+          "    responseTime: pm.response.responseTime,",
+          "    timestamp: new Date().toISOString()",
+          "};",
+          "",
+          "console.log('测试结果:', JSON.stringify(testResult, null, 2));"
+        ]
+      }
+    }
+  ]
+}

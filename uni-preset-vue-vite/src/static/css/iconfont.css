@@ -1,0 +1,74 @@
+@font-face {
+  font-family: "iconfont";
+  src: url('data:application/x-font-woff2;charset=utf-8;base64,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');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 图标定义 */
+.icon-order:before { content: "\e66f"; }
+.icon-community:before { content: "\e668"; }
+.icon-tools:before { content: "\e666"; }
+.icon-support:before { content: "\e67b"; }
+.icon-favorite:before { content: "\e637"; }
+.icon-health:before { content: "\e6da"; }
+.icon-wallet:before { content: "\e642"; }
+.icon-vip:before { content: "\e678"; }
+.icon-calendar:before { content: "\e64c"; }
+.icon-payment:before { content: "\e6b3"; }
+.icon-delivery:before { content: "\e640"; }
+.icon-notification:before { content: "\e729"; }
+.icon-gift:before { content: "\e699"; }
+.icon-coupon:before { content: "\e60b"; }
+.icon-home:before { content: "\e6b8"; }
+.icon-compass:before { content: "\e67a"; }
+.icon-user:before { content: "\e7ae"; }
+.icon-settings:before { content: "\e78e"; }
+
+/* 新增图标定义 */
+.icon-wechat:before { content: "\e63f"; }
+.icon-phone:before { content: "\e61b"; }
+.icon-edit:before { content: "\e649"; }
+.icon-add:before { content: "\e664"; }
+.icon-cat:before { content: "\e638"; }
+.icon-dog:before { content: "\e639"; }
+.icon-other-pet:before { content: "\e63a"; }
+.icon-back:before { content: "\e697"; }
+
+/* 订单管理图标 */
+.icon-goods:before { content: "\e66f"; }
+.icon-medical:before { content: "\e6da"; }
+.icon-insurance:before { content: "\e642"; }
+.icon-arrow-right:before { content: "\e697"; }
+.icon-right:before { content: "\e697"; }
+.icon-consultation:before { content: "\e6da"; }
+.icon-message:before { content: "\e6da"; }
+
+/* 社区功能图标 */
+.icon-like:before { content: "\e8c3"; }
+.icon-like-filled:before { content: "\e8c4"; }
+.icon-comment:before { content: "\e8c5"; }
+.icon-collect:before { content: "\e8c6"; }
+.icon-collect-filled:before { content: "\e8c7"; }
+.icon-share:before { content: "\e8c8"; }
+.icon-play:before { content: "\e8c9"; }
+.icon-search:before { content: "\e8ca"; }
+.icon-close:before { content: "\e8cb"; }
+.icon-camera:before { content: "\e8cc"; }
+.icon-service:before { content: "\e8cd"; }
+.icon-help:before { content: "\e8ce"; }
+.icon-feedback:before { content: "\e8cf"; }
+.icon-filter:before { content: "\e8d0"; }
+.icon-down:before { content: "\e8d1"; }
+.icon-star:before { content: "\e8d2"; }
+.icon-male:before { content: "\e8d3"; }
+.icon-female:before { content: "\e8d4"; }
+.icon-message:before { content: "\e8d5"; } 

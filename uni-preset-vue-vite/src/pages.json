@@ -1,0 +1,279 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/profile/profile",
+			"style": {
+				"navigationBarTitleText": "个人中心",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录/注册"
+			}
+		},
+		{
+			"path": "pages/login/phone-login",
+			"style": {
+				"navigationBarTitleText": "注册"
+			}
+		},
+		{
+			"path": "pages/login/account-login",
+			"style": {
+				"navigationBarTitleText": "账号登录/注册"
+			}
+		},
+		{
+			"path": "pages/profile/pet-info",
+			"style": {
+				"navigationBarTitleText": "宠物信息"
+			}
+		},
+		{
+			"path": "pages/profile/edit-profile",
+			"style": {
+				"navigationBarTitleText": "编辑个人资料",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/pet-management",
+			"style": {
+				"navigationBarTitleText": "宠物管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/profile/pending-items",
+			"style": {
+				"navigationBarTitleText": "待处理事项",
+				"navigationStyle": "custom"
+			}
+		},
+
+		{
+			"path": "pages/order/index",
+			"style": {
+				"navigationBarTitleText": "订单管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order/goods-list",
+			"style": {
+				"navigationBarTitleText": "宠物用品订单",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/order/insurance-list",
+			"style": {
+				"navigationBarTitleText": "保险保单",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/community/index",
+			"style": {
+				"navigationBarTitleText": "我的社区",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/community/home",
+			"style": {
+				"navigationBarTitleText": "宠物社区",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/community/publish",
+			"style": {
+				"navigationBarTitleText": "发布动态",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/community/detail",
+			"style": {
+				"navigationBarTitleText": "动态详情",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/account/index",
+			"style": {
+				"navigationBarTitleText": "账户工具",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/account/coupons",
+			"style": {
+				"navigationBarTitleText": "我的优惠券",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/account/points-mall",
+			"style": {
+				"navigationBarTitleText": "积分商城",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/account/address",
+			"style": {
+				"navigationBarTitleText": "地址管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/support/index",
+			"style": {
+			  "navigationBarTitleText": "服务支持"
+			}
+		 },
+		{
+			"path": "pages/support/customer-service",
+			"style": {
+				"navigationBarTitleText": "在线客服"
+			}
+		},
+		{
+			"path": "pages/support/help-center",
+			"style": {
+				"navigationBarTitleText": "帮助中心"
+			}
+		},
+		{
+			"path": "pages/support/feedback",
+			"style": {
+				"navigationBarTitleText": "投诉建议"
+			}
+		},
+		{
+			"path": "pages/search/result",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "搜索结果",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/goods/list",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "商品列表",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/goods/detail",
+			"style": {
+				"navigationStyle": "custom",
+                "navigationBarTitleText": "商品详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/cart/index",
+			"style": {
+				"navigationBarTitleText": "购物车",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/order/confirm-order",
+			"style": {
+				"navigationBarTitleText": "确认订单",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/order/unpaid-list",
+			"style": {
+				"navigationBarTitleText": "未付款订单",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/insurance/list",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "宠物保险",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/insurance/detail",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "保险详情",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/webview/index",
+			"style": {
+				"navigationStyle": "custom",
+				"navigationBarTitleText": "网页浏览"
+			}
+		},
+		{
+			"path": "pages/medical/index",
+			"style": {
+				"navigationBarTitleText": "优质医院",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/medical/detail",
+			"style": {
+				"navigationBarTitleText": "医院详情",
+				"navigationStyle": "custom"
+			}
+		}
+	],
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#6F87FF",
+		"backgroundColor": "#FFFFFF",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/images/tabbar/home.png",
+				"selectedIconPath": "static/images/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/cart/index",
+				"text": "购物车",
+				"iconPath": "static/images/tabbar/cart.png",
+				"selectedIconPath": "static/images/tabbar/cart-active.png"
+			},
+			{
+				"pagePath": "pages/profile/profile",
+				"text": "我的",
+				"iconPath": "static/images/tabbar/profile.png",
+				"selectedIconPath": "static/images/tabbar/profile-active.png"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "petpal",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	}
+}
+
