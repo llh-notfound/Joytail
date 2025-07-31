@@ -2,7 +2,9 @@
   <view class="publish-page">
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
       <text class="nav-title">发布动态</text>
       <text class="nav-publish" @tap="publishContent">发布</text>
     </view>    <!-- 发布内容区域 -->

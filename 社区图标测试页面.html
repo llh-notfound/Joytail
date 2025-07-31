@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetPal 社区图标测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .title {
+            color: #6F87FF;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .icon-test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .icon-row {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .icon-preview {
+            width: 32px;
+            height: 32px;
+            margin-right: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        .icon-info {
+            flex: 1;
+        }
+        .icon-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .icon-path {
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+            margin-top: 5px;
+        }
+        .status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .demo-interaction {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .demo-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .demo-item:hover {
+            color: #333;
+            transform: translateY(-2px);
+        }
+        .demo-icon {
+            width: 24px;
+            height: 24px;
+        }
+        .summary {
+            margin-top: 30px;
+            padding: 20px;
+            background: #e7f3ff;
+            border-left: 4px solid #6F87FF;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">🎨 PetPal 社区图标测试</h1>
+        
+        <div class="icon-test-section">
+            <h3>📍 点赞图标测试</h3>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/like.png" alt="点赞图标" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">点赞图标 (未选中)</div>
+                    <div class="icon-path">/static/images/community/like.png</div>
+                </div>
+                <span class="status success" id="like-status">✅ 已生成</span>
+            </div>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/like-filled.png" alt="点赞图标(选中)" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">点赞图标 (选中状态)</div>
+                    <div class="icon-path">/static/images/community/like-filled.png</div>
+                </div>
+                <span class="status success" id="like-filled-status">✅ 已生成</span>
+            </div>
+        </div>
+
+        <div class="icon-test-section">
+            <h3>⭐ 收藏图标测试</h3>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/collect.png" alt="收藏图标" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">收藏图标 (未选中)</div>
+                    <div class="icon-path">/static/images/community/collect.png</div>
+                </div>
+                <span class="status success" id="collect-status">✅ 已生成</span>
+            </div>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/collect-filled.png" alt="收藏图标(选中)" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">收藏图标 (选中状态)</div>
+                    <div class="icon-path">/static/images/community/collect-filled.png</div>
+                </div>
+                <span class="status success" id="collect-filled-status">✅ 已生成</span>
+            </div>
+        </div>
+
+        <div class="icon-test-section">
+            <h3>💬 其他功能图标测试</h3>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/comment.png" alt="评论图标" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">评论图标</div>
+                    <div class="icon-path">/static/images/community/comment.png</div>
+                </div>
+                <span class="status success" id="comment-status">✅ 已生成</span>
+            </div>
+            <div class="icon-row">
+                <img class="icon-preview" src="/static/images/community/share.png" alt="分享图标" onerror="this.style.border='2px solid red'">
+                <div class="icon-info">
+                    <div class="icon-name">分享图标</div>
+                    <div class="icon-path">/static/images/community/share.png</div>
+                </div>
+                <span class="status success" id="share-status">✅ 已生成</span>
+            </div>
+        </div>
+
+        <div class="icon-test-section">
+            <h3>🎯 社区互动演示</h3>
+            <p>以下是社区功能中图标的实际使用效果：</p>
+            <div class="demo-interaction">
+                <div class="demo-item" onclick="toggleLike()">
+                    <img class="demo-icon" src="/static/images/community/like.png" alt="点赞" id="demo-like-icon">
+                    <span id="demo-like-count">128</span>
+                </div>
+                <div class="demo-item">
+                    <img class="demo-icon" src="/static/images/community/comment.png" alt="评论">
+                    <span>32</span>
+                </div>
+                <div class="demo-item" onclick="toggleCollect()">
+                    <img class="demo-icon" src="/static/images/community/collect.png" alt="收藏" id="demo-collect-icon">
+                    <span id="demo-collect-count">56</span>
+                </div>
+                <div class="demo-item">
+                    <img class="demo-icon" src="/static/images/community/share.png" alt="分享">
+                    <span>分享</span>
+                </div>
+            </div>
+            <p style="text-align: center; color: #666; font-size: 14px;">
+                点击点赞和收藏图标可以看到状态切换效果
+            </p>
+        </div>
+
+        <div class="summary">
+            <h3>📋 图标应用总结</h3>
+            <ul>
+                <li><strong>✅ 已生成图标</strong>: 6个社区功能图标</li>
+                <li><strong>🔄 已更新页面</strong>: community/home.vue, community/detail.vue, community/index.vue</li>
+                <li><strong>🎨 图标特点</strong>: 简洁现代、状态清晰、尺寸适配</li>
+                <li><strong>📱 兼容性</strong>: 支持uni-app多端运行</li>
+                <li><strong>🚀 性能优化</strong>: PNG格式，文件小巧，加载快速</li>
+            </ul>
+            
+            <h3>🔧 使用方法</h3>
+            <p>在Vue组件中使用图标：</p>
+            <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto;">
+&lt;image 
+  class="interaction-icon" 
+  :src="item.isLiked ? '/static/images/community/like-filled.png' : '/static/images/community/like.png'"
+  mode="aspectFit"
+&gt;&lt;/image&gt;</pre>
+        </div>
+    </div>
+
+    <script>
+        let isLiked = false;
+        let isCollected = false;
+
+        function toggleLike() {
+            isLiked = !isLiked;
+            const icon = document.getElementById('demo-like-icon');
+            const count = document.getElementById('demo-like-count');
+            
+            if (isLiked) {
+                icon.src = '/static/images/community/like-filled.png';
+                count.textContent = '129';
+            } else {
+                icon.src = '/static/images/community/like.png';
+                count.textContent = '128';
+            }
+        }
+
+        function toggleCollect() {
+            isCollected = !isCollected;
+            const icon = document.getElementById('demo-collect-icon');
+            const count = document.getElementById('demo-collect-count');
+            
+            if (isCollected) {
+                icon.src = '/static/images/community/collect-filled.png';
+                count.textContent = '57';
+            } else {
+                icon.src = '/static/images/community/collect.png';
+                count.textContent = '56';
+            }
+        }
+
+        // 检查图标加载状态
+        document.addEventListener('DOMContentLoaded', function() {
+            const iconImages = document.querySelectorAll('.icon-preview');
+            const statusElements = document.querySelectorAll('.status');
+            
+            iconImages.forEach((img, index) => {
+                img.addEventListener('error', function() {
+                    if (statusElements[index]) {
+                        statusElements[index].className = 'status error';
+                        statusElements[index].textContent = '❌ 加载失败';
+                    }
+                });
+                
+                img.addEventListener('load', function() {
+                    if (statusElements[index]) {
+                        statusElements[index].className = 'status success';
+                        statusElements[index].textContent = '✅ 加载成功';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

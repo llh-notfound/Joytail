@@ -2,7 +2,7 @@
 const defaultUser = {
   userId: 'virtual_user_123456',
   nickname: '虚拟用户',
-  avatar: '/static/images/default-avatar.png',
+  avatar: '/static/images/default-avatar-mao.jpg',
   memberLevel: '黄金会员',
   token: 'mock_token_' + Date.now(),
   petAvatar: '/static/images/pet.png',

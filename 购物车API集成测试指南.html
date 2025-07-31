@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车API集成测试指南</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .test-case {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .test-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .test-steps {
+            background: #f1f3f4;
+            padding: 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .expected {
+            background: #e8f5e8;
+            padding: 12px;
+            border-radius: 4px;
+            border-left: 4px solid #4CAF50;
+            margin: 10px 0;
+        }
+        .api-info {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-mock { background-color: #ffc107; }
+        .status-api { background-color: #28a745; }
+        .status-error { background-color: #dc3545; }
+        .mode-switch {
+            background: #17a2b8;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        .comparison-table th {
+            background-color: #6F87FF;
+            color: white;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛒 PetPal 购物车API集成测试指南</h1>
+        <p>购物车从Mock数据到真实API的完整测试验证</p>
+    </div>
+
+    <div class="api-info">
+        <h2>🔧 当前配置状态</h2>
+        <p><strong>配置文件：</strong><code>/src/utils/config.js</code></p>
+        <div class="code-block">
+// 当前配置
+export const USE_MOCK = false; // ✅ API模式（生产）
+// export const USE_MOCK = true; // Mock模式（开发测试）
+        </div>
+        <p><strong>开发服务器：</strong><code>http://localhost:5174/</code></p>
+    </div>
+
+    <div class="test-section">
+        <h2>📋 测试前准备</h2>
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-mock"></span>
+                1. 确认开发环境运行
+            </div>
+            <div class="test-steps">
+                <strong>检查项目状态：</strong>
+                <ol>
+                    <li>开发服务器已启动：<code>npm run dev:h5</code></li>
+                    <li>浏览器访问：<code>http://localhost:5174/</code></li>
+                    <li>检查控制台无编译错误</li>
+                    <li>确认网络请求正常</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-api"></span>
+                2. 后端API连接检查
+            </div>
+            <div class="test-steps">
+                <strong>验证API可用性：</strong>
+                <ol>
+                    <li>后端服务器状态：<code>http://localhost:8080/api</code></li>
+                    <li>购物车接口测试：<code>GET /api/cart/list</code></li>
+                    <li>用户认证状态检查</li>
+                    <li>网络连接稳定性</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Mock模式测试（本地存储）</h2>
+        <div class="mode-switch">
+            <strong>切换到Mock模式：</strong>设置 <code>USE_MOCK = true</code>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-mock"></span>
+                测试1：基础购物车操作
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>进入商品列表页面</li>
+                    <li>选择任意商品进入详情页</li>
+                    <li>选择规格（如果有）并调整数量</li>
+                    <li>点击"加入购物车"</li>
+                    <li>进入购物车页面查看商品</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 商品成功添加到购物车</li>
+                    <li>✅ 购物车显示正确的商品信息</li>
+                    <li>✅ 数量和规格信息正确</li>
+                    <li>✅ 价格计算准确</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-mock"></span>
+                测试2：购物车操作功能
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>在购物车中调整商品数量（+ / -）</li>
+                    <li>测试选中/取消选中单个商品</li>
+                    <li>测试全选/取消全选功能</li>
+                    <li>测试删除商品（数量减到1时的确认对话框）</li>
+                    <li>查看总价计算是否正确</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 数量调整实时生效</li>
+                    <li>✅ 选中状态正确切换</li>
+                    <li>✅ 全选功能正常</li>
+                    <li>✅ 删除确认对话框正常弹出</li>
+                    <li>✅ 总价实时更新</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-mock"></span>
+                测试3：数据持久化
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>添加几个商品到购物车</li>
+                    <li>刷新页面（F5）</li>
+                    <li>重新进入购物车页面</li>
+                    <li>检查数据是否保持</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 购物车数据在刷新后保持</li>
+                    <li>✅ 商品数量、选中状态保持</li>
+                    <li>✅ 本地存储正常工作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🌐 API模式测试（后端集成）</h2>
+        <div class="mode-switch">
+            <strong>切换到API模式：</strong>设置 <code>USE_MOCK = false</code>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-api"></span>
+                测试1：用户认证流程
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>未登录状态下进入购物车页面</li>
+                    <li>观察是否显示登录提示</li>
+                    <li>进行用户登录</li>
+                    <li>登录后重新访问购物车</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 未登录时显示"请先登录"</li>
+                    <li>✅ 自动跳转到登录页面</li>
+                    <li>✅ 登录后可正常访问购物车</li>
+                    <li>✅ 认证状态持久化</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-api"></span>
+                测试2：API数据同步
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>在商品详情页添加商品到购物车</li>
+                    <li>进入购物车页面查看数据</li>
+                    <li>在购物车中修改数量和选中状态</li>
+                    <li>刷新页面检查数据是否同步</li>
+                    <li>在不同设备/浏览器中登录同一账号</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 添加商品后API调用成功</li>
+                    <li>✅ 购物车数据来自后端API</li>
+                    <li>✅ 修改操作实时同步到后端</li>
+                    <li>✅ 跨设备数据一致性</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">
+                <span class="status-indicator status-error"></span>
+                测试3：错误处理机制
+            </div>
+            <div class="test-steps">
+                <strong>测试步骤：</strong>
+                <ol>
+                    <li>断开网络连接后操作购物车</li>
+                    <li>登录过期后进行购物车操作</li>
+                    <li>服务器响应错误时的处理</li>
+                    <li>网络恢复后的数据同步</li>
+                </ol>
+            </div>
+            <div class="expected">
+                <strong>预期结果：</strong>
+                <ul>
+                    <li>✅ 网络错误时显示友好提示</li>
+                    <li>✅ 认证过期自动跳转登录</li>
+                    <li>✅ 错误状态下不会崩溃</li>
+                    <li>✅ 网络恢复后能正常操作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 API接口测试对照</h2>
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>功能</th>
+                    <th>Mock模式</th>
+                    <th>API模式</th>
+                    <th>接口</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>获取购物车</td>
+                    <td>uni.getStorageSync</td>
+                    <td>cartApi.getCartList()</td>
+                    <td>GET /api/cart/list</td>
+                </tr>
+                <tr>
+                    <td>添加商品</td>
+                    <td>cartUtils.addToCart</td>
+                    <td>cartApi.addToCart()</td>
+                    <td>POST /api/cart/add</td>
+                </tr>
+                <tr>
+                    <td>更新数量</td>
+                    <td>cartUtils.updateQuantity</td>
+                    <td>cartApi.updateCartItem()</td>
+                    <td>PUT /api/cart/update</td>
+                </tr>
+                <tr>
+                    <td>选中状态</td>
+                    <td>cartUtils.updateSelected</td>
+                    <td>cartApi.updateCartItemSelected()</td>
+                    <td>PUT /api/cart/select</td>
+                </tr>
+                <tr>
+                    <td>全选操作</td>
+                    <td>批量本地更新</td>
+                    <td>cartApi.selectAllCartItems()</td>
+                    <td>PUT /api/cart/select-all</td>
+                </tr>
+                <tr>
+                    <td>删除商品</td>
+                    <td>cartUtils.removeFromCart</td>
+                    <td>cartApi.deleteCartItems()</td>
+                    <td>DELETE /api/cart/delete</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 调试工具</h2>
+        <div class="test-case">
+            <div class="test-title">浏览器开发者工具</div>
+            <div class="test-steps">
+                <strong>监控要点：</strong>
+                <ol>
+                    <li><strong>Console</strong>：查看购物车操作日志</li>
+                    <li><strong>Network</strong>：监控API请求和响应</li>
+                    <li><strong>Application → Storage</strong>：检查本地存储数据</li>
+                    <li><strong>Application → Cookies</strong>：检查认证信息</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="test-case">
+            <div class="test-title">关键日志检查</div>
+            <div class="code-block">
+// Mock模式日志
+本地存储中的购物车数据: {...}
+解析后的购物车数据: [...]
+购物车数据已加载, 数量: 2
+
+// API模式日志
+后端购物车数据: {code: 200, data: [...]}
+更新选中状态失败: Error...
+获取购物车数据失败: 401 Unauthorized
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ 验收标准</h2>
+        <div class="expected">
+            <h3>Mock模式必须通过：</h3>
+            <ul>
+                <li>✅ 基础CRUD操作（增删改查）</li>
+                <li>✅ 数据本地持久化</li>
+                <li>✅ UI响应正常</li>
+                <li>✅ 价格计算正确</li>
+            </ul>
+        </div>
+
+        <div class="expected">
+            <h3>API模式必须通过：</h3>
+            <ul>
+                <li>✅ 用户认证流程</li>
+                <li>✅ 所有API接口调用成功</li>
+                <li>✅ 错误处理机制完善</li>
+                <li>✅ 跨设备数据同步</li>
+                <li>✅ 网络异常处理</li>
+            </ul>
+        </div>
+
+        <div class="expected">
+            <h3>模式切换必须通过：</h3>
+            <ul>
+                <li>✅ 配置修改后无需重启</li>
+                <li>✅ 两种模式功能一致</li>
+                <li>✅ 切换过程无数据丢失</li>
+                <li>✅ 代码兼容性良好</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="api-info">
+        <h2>🚀 部署建议</h2>
+        <p><strong>开发环境：</strong>使用Mock模式（<code>USE_MOCK = true</code>）便于调试</p>
+        <p><strong>测试环境：</strong>使用API模式验证接口集成</p>
+        <p><strong>生产环境：</strong>确保API模式（<code>USE_MOCK = false</code>）稳定运行</p>
+        <div class="code-block">
+// 部署前检查清单
+✅ 后端API服务正常运行
+✅ 用户认证系统配置正确  
+✅ 数据库连接稳定
+✅ 错误处理机制完善
+✅ 前端配置切换到API模式
+        </div>
+    </div>
+</body>
+</html>

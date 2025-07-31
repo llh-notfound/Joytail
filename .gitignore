@@ -1,0 +1,59 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.zip
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+
+# UniApp specific
+unpackage/
+platforms/
+
+# Test files (keeping documentation but excluding test HTML files that are too large)
+*test*.html
+*debug*.html
+*验证工具*.html
+
+# Payment related images
+付款码.jpg
+
+# Large documentation files that might be redundant
+*.docx
+*.pptx
+*.xlsx
+
+# Backup folders
+petpal*/
+*.zip
+
+# Case study and presentation files
+CaseStudyReport_Guidelines.pdf
+Presentation*.pptx

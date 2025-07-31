@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetPal筛选功能测试指南</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .test-step {
+            background: #fff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .code {
+            background: #f1f3f4;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .success { border-left-color: #28a745; }
+        .warning { border-left-color: #ffc107; }
+        .info { border-left-color: #17a2b8; }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        .checklist li:before {
+            content: '☐';
+            position: absolute;
+            left: 0;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .network-log {
+            background: #263238;
+            color: #4fc3f7;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 11px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 PetPal商品筛选功能测试指南</h1>
+        <p>验证前端筛选已改为后端筛选</p>
+    </div>
+
+    <div class="section success">
+        <h2>✅ 已完成的修改</h2>
+        <ul>
+            <li>✅ 移除前端筛选逻辑，改为纯后端筛选</li>
+            <li>✅ 排序功能改为后端处理</li>
+            <li>✅ 添加调试日志，便于观察API请求</li>
+            <li>✅ 统一使用 `reloadData()` 函数处理数据重载</li>
+            <li>✅ 支持所有筛选参数：分类、品牌、价格区间、搜索、排序</li>
+        </ul>
+    </div>
+
+    <div class="section info">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="test-step">
+            <h3>1. 打开开发者工具</h3>
+            <p>在浏览器中按 <kbd>F12</kbd> 或右键 → 检查，切换到 <strong>Network</strong> 选项卡</p>
+        </div>
+
+        <div class="test-step">
+            <h3>2. 访问商品列表页面</h3>
+            <p>在PetPal应用中导航到商品列表页面（宠物用品页面）</p>
+            <div class="code">http://localhost:5175/#/pages/goods/list</div>
+        </div>
+
+        <div class="test-step">
+            <h3>3. 观察初始加载</h3>
+            <p>页面加载时应该能看到API请求：</p>
+            <div class="network-log">
+Request: GET /api/goods/list?page=1&pageSize=10
+Response: {"code":200,"data":{"items":[...],"total":50}}
+            </div>
+        </div>
+
+        <div class="test-step">
+            <h3>4. 测试分类筛选</h3>
+            <ol>
+                <li>点击页面右上角的 <strong>"筛选"</strong> 按钮</li>
+                <li>选择一个分类，如 <strong>"猫粮"</strong></li>
+                <li>点击 <strong>"确定"</strong> 按钮</li>
+                <li>观察Network选项卡，应该能看到新的API请求：</li>
+            </ol>
+            <div class="network-log">
+Request: GET /api/goods/list?page=1&pageSize=10&category=猫粮
+Console: 🔍 [商品筛选] 发送API请求: {category: "猫粮", page: 1, pageSize: 10}
+            </div>
+        </div>
+
+        <div class="test-step">
+            <h3>5. 测试排序功能</h3>
+            <ol>
+                <li>点击 <strong>"价格"</strong> 排序按钮</li>
+                <li>观察是否发送新的API请求：</li>
+            </ol>
+            <div class="network-log">
+Request: GET /api/goods/list?page=1&pageSize=10&sortBy=price_asc
+Console: 🔍 [商品筛选] 发送API请求: {sortBy: "price_asc", page: 1, pageSize: 10}
+            </div>
+        </div>
+
+        <div class="test-step">
+            <h3>6. 测试搜索功能</h3>
+            <ol>
+                <li>在搜索框输入关键词，如 <strong>"猫粮"</strong></li>
+                <li>按回车或点击搜索</li>
+                <li>观察API请求：</li>
+            </ol>
+            <div class="network-log">
+Request: GET /api/goods/list?page=1&pageSize=10&keyword=猫粮
+Console: 🔍 [商品筛选] 发送API请求: {keyword: "猫粮", page: 1, pageSize: 10}
+            </div>
+        </div>
+    </div>
+
+    <div class="section warning">
+        <h2>🔍 验证清单</h2>
+        <ul class="checklist">
+            <li>每次筛选操作都能在Network中看到API请求</li>
+            <li>请求URL包含正确的筛选参数</li>
+            <li>Console中显示调试日志</li>
+            <li>筛选后页面显示正确的商品数据</li>
+            <li>分页功能正常（滚动到底部加载更多）</li>
+            <li>排序功能触发新的API请求</li>
+            <li>搜索功能触发新的API请求</li>
+            <li>组合筛选（分类+价格+排序）正常工作</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🐛 常见问题排查</h2>
+        
+        <div class="test-step">
+            <h3>问题1：点击筛选没有看到网络请求</h3>
+            <p><strong>可能原因：</strong></p>
+            <ul>
+                <li>仍在使用Mock模式（检查 USE_MOCK 配置）</li>
+                <li>筛选参数为空（检查是否选择了筛选条件）</li>
+                <li>JavaScript错误（检查Console选项卡）</li>
+            </ul>
+        </div>
+
+        <div class="test-step">
+            <h3>问题2：API请求失败</h3>
+            <p><strong>检查：</strong></p>
+            <ul>
+                <li>API服务器是否正常运行</li>
+                <li>网络连接是否正常</li>
+                <li>请求参数格式是否正确</li>
+            </ul>
+        </div>
+
+        <div class="test-step">
+            <h3>问题3：筛选结果不正确</h3>
+            <p><strong>检查：</strong></p>
+            <ul>
+                <li>后端API是否支持新的分类参数</li>
+                <li>数据库中商品分类是否已更新</li>
+                <li>API响应数据格式是否正确</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section info">
+        <h2>📊 支持的API参数</h2>
+        <div class="code">
+GET /api/goods/list?参数列表
+
+支持的参数：
+- page: 页码 (默认1)
+- pageSize: 每页数量 (默认10)
+- category: 商品分类 (猫粮/狗粮/玩具/零食/护毛素/猫砂/除臭剂/沐浴露)
+- brand: 品牌 (皇家/冠能/宝路/萌能/麦富迪)
+- keyword: 搜索关键词
+- minPrice: 最低价格
+- maxPrice: 最高价格
+- sortBy: 排序方式 (price_asc/price_desc/sales_desc)
+        </div>
+    </div>
+
+    <div class="section success">
+        <h2>✨ 测试成功标志</h2>
+        <p>如果您看到以下现象，说明后端筛选配置成功：</p>
+        <ul>
+            <li>🌐 每次筛选都有对应的网络请求</li>
+            <li>📝 Console显示详细的调试日志</li>
+            <li>🔄 筛选后商品列表实时更新</li>
+            <li>⚡ 排序和搜索立即生效</li>
+            <li>📄 分页加载更多功能正常</li>
+        </ul>
+    </div>
+
+    <script>
+        // 添加一些交互功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.checklist li');
+            checkboxes.forEach(item => {
+                item.addEventListener('click', function() {
+                    if (this.style.textDecoration === 'line-through') {
+                        this.style.textDecoration = 'none';
+                        this.style.color = 'inherit';
+                        this.querySelector('::before') ? this.style.setProperty('--check', '☐') : null;
+                    } else {
+                        this.style.textDecoration = 'line-through';
+                        this.style.color = '#6c757d';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

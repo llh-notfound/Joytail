@@ -31,8 +31,11 @@ const request = (url, method = 'GET', data = {}, auth = false, headers = {}) => 
     }
     
     // 发起请求
+    const fullUrl = BASE_URL + url;
+    console.log(`🔗 [请求] ${method} ${fullUrl}`, data);
+    
     uni.request({
-      url: BASE_URL + url,
+      url: fullUrl,
       method,
       data,
       header: requestHeaders,

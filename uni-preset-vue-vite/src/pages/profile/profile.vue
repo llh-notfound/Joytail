@@ -15,17 +15,13 @@
           <view v-else class="login-btn">点击登录/注册</view>
         </view>
       </view>
-      <view class="pet-avatars" @tap="goToPetManagement">
+      <view class="pet-avatars">
         <image 
           v-for="(pet, index) in petList" 
           :key="index"
           class="pet-avatar" 
           :src="pet.avatar || '/static/images/pet.png'"
         ></image>
-        <view v-if="petList.length === 0" class="add-pet-hint">
-          <text class="iconfont icon-add"></text>
-          <text>添加宠物</text>
-        </view>
       </view>
       
       <!-- 快捷模拟登录/退出按钮 -->
@@ -39,7 +35,12 @@
     <view class="feature-grid">
       <view v-for="(item, index) in featureItems" :key="index" class="feature-item" @tap="handleFeatureClick(item)">
         <view class="feature-icon">
-          <text :class="['iconfont', item.icon]"></text>
+          <image 
+            :src="item.icon" 
+            mode="aspectFit" 
+            class="icon-image"
+            @error="handleImageError"
+          ></image>
         </view>
         <text class="feature-name">{{ item.name }}</text>
       </view>
@@ -55,10 +56,16 @@
       <view v-if="isLoggedIn">
         <view class="task-item" @tap="goToPendingItems">
           <view class="task-left">
-            <text class="task-icon iconfont icon-payment"></text>
+            <view class="task-icon">
+              <image 
+                src="/static/images/section-icons/unpaid-order.png" 
+                mode="aspectFit" 
+                class="section-icon-image"
+                @error="handleImageError"
+              ></image>
+            </view>
             <view class="task-info">
               <view class="task-title">待付款订单</view>
-              <view class="task-desc">有{{pendingItems.unpaidOrders}}个订单等待支付</view>
             </view>
           </view>
           <text class="task-action">去支付</text>
@@ -68,36 +75,6 @@
       <view v-else class="login-required">
         <text class="login-tip">登录后查看您的待处理事项</text>
         <button class="login-now-btn" @tap="navigateToLogin">立即登录</button>
-      </view>
-    </view>
-
-    <!-- 活动通知 -->
-    <view class="notification-section">
-      <view class="section-header">
-        <text class="section-icon iconfont icon-notification"></text>
-        <text class="section-title">活动通知</text>
-      </view>
-      
-      <view class="notification-item">
-        <view class="notification-left">
-          <text class="notification-icon iconfont icon-gift"></text>
-          <view class="notification-info">
-            <view class="notification-title">会员日专属优惠</view>
-            <view class="notification-desc">每月18日，尊享9折特权</view>
-          </view>
-        </view>
-        <text class="notification-time">3分钟前</text>
-      </view>
-      
-      <view class="notification-item">
-        <view class="notification-left">
-          <text class="notification-icon iconfont icon-coupon"></text>
-          <view class="notification-info">
-            <view class="notification-title">新人专享礼包</view>
-            <view class="notification-desc">新用户专享多重优惠</view>
-          </view>
-        </view>
-        <text class="notification-time">昨天</text>
       </view>
     </view>
 
@@ -130,7 +107,7 @@ import { userApi, petApi, orderApi } from '../../utils/api';
 import { USE_MOCK } from '../../utils/config';
 
 // 默认头像
-const defaultAvatar = '/static/images/default-avatar.png';
+const defaultAvatar = '/static/images/default-avatar-mao.jpg';
 
 // 是否已登录
 const isLoggedIn = ref(false);
@@ -143,20 +120,41 @@ const userInfo = ref({
   petAvatar: '/static/images/pet.png'
 });
 
+// 图片加载错误处理
+const handleImageError = (e) => {
+  console.error('图片加载失败:', e.target);
+  const defaultIcon = '/static/images/default-icon.png';
+  if (e.target && e.target.src !== defaultIcon) {
+    e.target.src = defaultIcon;
+  }
+};
+
+// 功能区图标路径处理
+const getIconPath = (filename) => {
+  return `/static/images/feature-icons/${filename}.png`;
+};
+
 // 功能区
 const featureItems = ref([
-  { name: '订单管理', icon: 'icon-order' },
-  { name: '社区互动', icon: 'icon-community' },
-  { name: '账户工具', icon: 'icon-tools' },
-  { name: '服务支持', icon: 'icon-support' }
+  { 
+    name: '订单管理', 
+    icon: getIconPath('order')
+  },
+  { 
+    name: '社区互动', 
+    icon: getIconPath('community')
+  },
+  { 
+    name: '地址管理', 
+    icon: getIconPath('tools')
+  },
+  {
+    name: '宠物管理',
+    icon: '/static/images/section-icons/add-pet.png'
+  }
 ]);
 
 const petList = ref([]);
-
-// 待处理事项数据
-const pendingItems = ref({
-  unpaidOrders: 0
-});
 
 // 获取宠物列表
 const getPetList = () => {
@@ -178,24 +176,10 @@ const getPetList = () => {
     });
 };
 
-// 获取待处理事项
-const fetchPendingItems = async () => {
-  try {
-    // 模拟API调用
-    const response = {
-      unpaidOrders: 3
-    }
-    pendingItems.value = response
-  } catch (error) {
-    console.error('获取待处理事项失败:', error)
-  }
-}
-
 // 页面加载时检查登录状态和获取宠物列表
 onMounted(() => {
   checkLoginStatus();
   getPetList();
-  fetchPendingItems();
   
   // 监听宠物列表更新事件
   uni.$on('updatePetList', () => {
@@ -206,14 +190,12 @@ onMounted(() => {
   uni.$on('userLogin', () => {
     checkLoginStatus();
     getPetList();
-    fetchPendingItems();
   });
   
   // 监听用户登出事件
   uni.$on('userLogout', () => {
     checkLoginStatus();
     getPetList();
-    fetchPendingItems();
   });
 });
 
@@ -347,7 +329,7 @@ const handleFeatureClick = (item) => {
   console.log('点击了功能：', item.name);
   
   // 某些功能可能需要登录才能使用
-  if (!isLoggedIn.value && ['订单管理', '我的钱包', '会员特权', '社区互动'].includes(item.name)) {
+  if (!isLoggedIn.value && ['订单管理', '我的钱包', '会员特权', '社区互动', '宠物管理'].includes(item.name)) {
     uni.showToast({
       title: '请先登录',
       icon: 'none'
@@ -361,16 +343,16 @@ const handleFeatureClick = (item) => {
   // 根据不同功能跳转不同页面
   switch (item.name) {
     case '订单管理':
-      uni.navigateTo({ url: '/pages/order/index' });
+      uni.navigateTo({ url: '/pages/order/goods-list' });
       break;
     case '社区互动':
-      uni.navigateTo({ url: '/pages/community/index' });
+      uni.navigateTo({ url: '/pages/community/home' });
       break;
-    case '账户工具':
-      uni.navigateTo({ url: '/pages/account/index' });
+    case '地址管理':
+      uni.navigateTo({ url: '/pages/account/address' });
       break;
-    case '服务支持':
-      uni.navigateTo({ url: '/pages/support/index' });
+    case '宠物管理':
+      uni.navigateTo({ url: '/pages/profile/pet-management' });
       break;
     default:
       // 其他功能的处理...
@@ -381,7 +363,7 @@ const handleFeatureClick = (item) => {
 // 跳转到待处理事项页面
 const goToPendingItems = () => {
   uni.navigateTo({
-    url: '/pages/profile/pending-items'
+    url: '/pages/order/goods-list?tab=1'
   });
 };
 
@@ -470,27 +452,13 @@ const switchTab = (tab) => {
   display: flex;
   align-items: center;
   gap: 20rpx;
+  margin-top: 20rpx;
   
   .pet-avatar {
     width: 80rpx;
     height: 80rpx;
     border-radius: 50%;
     border: 2rpx solid #ffffff;
-  }
-  
-  .add-pet-hint {
-    display: flex;
-    align-items: center;
-    gap: 10rpx;
-    padding: 10rpx 20rpx;
-    background-color: #f0f4ff;
-    border-radius: 30rpx;
-    font-size: 24rpx;
-    color: #6F87FF;
-    
-    .iconfont {
-      font-size: 28rpx;
-    }
   }
 }
 
@@ -540,16 +508,24 @@ const switchTab = (tab) => {
 }
 
 .feature-icon {
-  width: 100rpx;
-  height: 100rpx;
+  width: 120rpx;
+  height: 120rpx;
   background-color: #f0f4ff;
   border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
   margin-bottom: 15rpx;
-  font-size: 40rpx;
-  color: #6F87FF;
+  padding: 30rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+  
+  .icon-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+  }
 }
 
 .feature-name {
@@ -558,7 +534,7 @@ const switchTab = (tab) => {
 }
 
 /* 待处理事项区域 */
-.task-section, .notification-section {
+.task-section {
   background-color: #fff;
   border-radius: 20rpx;
   margin: 20rpx;
@@ -583,7 +559,7 @@ const switchTab = (tab) => {
   color: #333;
 }
 
-.task-item, .notification-item {
+.task-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -591,11 +567,11 @@ const switchTab = (tab) => {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.task-item:last-child, .notification-item:last-child {
+.task-item:last-child {
   border-bottom: none;
 }
 
-.task-left, .notification-left {
+.task-left {
   display: flex;
   align-items: center;
 }
@@ -609,34 +585,29 @@ const switchTab = (tab) => {
   justify-content: center;
   align-items: center;
   margin-right: 15rpx;
-  color: #6F87FF;
-  font-size: 40rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  .section-icon-image {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+  }
 }
 
-.notification-icon {
-  width: 80rpx;
-  height: 80rpx;
-  background-color: #fff4ee;
-  border-radius: 15rpx;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-right: 15rpx;
-  color: #FF9D6C;
-  font-size: 40rpx;
-}
-
-.task-info, .notification-info {
+.task-info {
   flex: 1;
 }
 
-.task-title, .notification-title {
+.task-title {
   font-size: 28rpx;
   color: #333;
   font-weight: 500;
 }
 
-.task-desc, .notification-desc {
+.task-desc {
   font-size: 24rpx;
   color: #999;
   margin-top: 5rpx;
@@ -645,11 +616,6 @@ const switchTab = (tab) => {
 .task-action {
   color: #6F87FF;
   font-size: 26rpx;
-}
-
-.notification-time {
-  font-size: 24rpx;
-  color: #999;
 }
 
 /* 未登录状态 */

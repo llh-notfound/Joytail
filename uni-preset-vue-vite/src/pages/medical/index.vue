@@ -103,13 +103,16 @@ export default {
   async onLoad() {
     await this.loadHospitals();
   },  methods: {
-    async loadHospitals() {
+  async loadHospitals() {
       this.loading = true;
       try {
         const response = await getHospitals();
         console.log('医院API响应:', response);
         
         if (response && response.code === 200 && response.data && response.data.list) {
+          // 导入图片处理工具
+          const { formatImageUrl } = await import('@/utils/imageHelper');
+          
           // 处理API响应数据，确保字段映射正确
           this.hospitals = response.data.list.map(hospital => ({
             id: hospital.id,
@@ -118,10 +121,12 @@ export default {
             phone: hospital.phone,
             website: hospital.website,
             description: hospital.description,
-            // API文档中使用logo_url和cover_url
-            logo: hospital.logo_url || hospital.logo,
-            cover: hospital.cover_url || hospital.cover,
-            images: hospital.images || [],
+            // API文档中使用logo_url和cover_url，使用formatImageUrl处理图片路径
+            logo: formatImageUrl(hospital.logo_url || hospital.logo),
+            cover: formatImageUrl(hospital.cover_url || hospital.cover),
+            images: (hospital.images || []).map(img => 
+              typeof img === 'string' ? formatImageUrl(img) : formatImageUrl(img.url || img)
+            ),
             rating: hospital.rating || 0,
             services: hospital.services || [],
             business_hours: hospital.business_hours,

@@ -92,7 +92,6 @@
     <!-- 底部操作栏 -->
     <view class="bottom-bar">
       <view class="cart-btn" @click="addToCart">加入购物车</view>
-      <view class="buy-btn" @click="buyNow">立即购买</view>
     </view>
   </view>
 </template>
@@ -242,40 +241,6 @@ const addToCart = () => {
   }
 }
 
-// 立即购买
-const buyNow = () => {
-  if (!goodsDetail.value.id) {
-    uni.showToast({
-      title: '商品信息不完整',
-      icon: 'none'
-    })
-    return
-  }
-  
-  if (goodsDetail.value.specs && goodsDetail.value.specs.length > 0 && !selectedSpec.value) {
-    uni.showToast({
-      title: '请选择规格',
-      icon: 'none'
-    })
-    return
-  }
-  
-  // 将商品数据转换为字符串并进行编码
-  const goodsData = encodeURIComponent(JSON.stringify({
-    goodsId: goodsDetail.value.id,
-    name: goodsDetail.value.name,
-    image: goodsDetail.value.images[0],
-    price: goodsDetail.value.price,
-    specs: selectedSpec.value,
-    quantity: quantity.value
-  }))
-  
-  // 跳转到确认订单页面
-  uni.navigateTo({
-    url: `/pages/order/confirm-order?goodsData=${goodsData}`
-  })
-}
-
 // 返回上一页
 const handleBack = () => {
   uni.navigateBack()
@@ -313,9 +278,9 @@ const getGoodsDetail = (id) => {
         category: categories[categoryIndex],
         brief: `优质${brands[brandIndex]}品牌${categories[categoryIndex]}，适合各种宠物使用`,
         images: [
-          '/static/images/pet.png',
-          '/static/images/pet.png',
-          '/static/images/pet.png'
+          `https://ywzezvbcsivv.sealosbja.site/public/images/goods/${categories[categoryIndex]}/${brands[brandIndex]}/封面.png`,
+          `https://ywzezvbcsivv.sealosbja.site/public/images/goods/${categories[categoryIndex]}/${brands[brandIndex]}/详情1.png`,
+          `https://ywzezvbcsivv.sealosbja.site/public/images/goods/${categories[categoryIndex]}/${brands[brandIndex]}/详情2.png`
         ],
         // 根据商品类型添加不同的规格
         specs: categories[categoryIndex] === '猫粮' || categories[categoryIndex] === '狗粮' 
@@ -606,22 +571,14 @@ onMounted(() => {
   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
-.cart-btn, .buy-btn {
+.cart-btn {
   flex: 1;
   height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 28rpx;
-}
-
-.cart-btn {
   background-color: #FFB74D;
-  color: #fff;
-}
-
-.buy-btn {
-  background: linear-gradient(135deg, #FF7043 0%, #FF5252 100%);
   color: #fff;
 }
 </style> 

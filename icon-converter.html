@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetPal Tabbar 图标转换工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .icon-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            background: #fafafa;
+        }
+        .icon-preview {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 15px;
+            background: white;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .icon-preview svg {
+            width: 32px;
+            height: 32px;
+        }
+        .icon-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .download-btn {
+            background: #6F87FF;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .download-btn:hover {
+            background: #5A6BF5;
+            transform: translateY(-1px);
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .instructions h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 PetPal Tabbar 图标转换工具</h1>
+        
+        <div class="icon-grid">
+            <!-- 首页图标 - 普通状态 -->
+            <div class="icon-item">
+                <div class="icon-preview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L4 9V21H8V15H16V21H20V9L12 3Z" stroke="#999999" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+                        <path d="M9 21V13H15V21" stroke="#999999" stroke-width="1.5" fill="none"/>
+                    </svg>
+                </div>
+                <div class="icon-name">首页 - 普通</div>
+                <button class="download-btn" onclick="downloadIcon('home', false)">下载 PNG</button>
+                <div class="file-info">保存为: home.png</div>
+            </div>
+
+            <!-- 首页图标 - 选中状态 -->
+            <div class="icon-item">
+                <div class="icon-preview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L4 9V21H8V15H16V21H20V9L12 3Z" fill="#6F87FF" stroke="#6F87FF" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M9 21V13H15V21" fill="#FFFFFF" stroke="#6F87FF" stroke-width="1.5"/>
+                    </svg>
+                </div>
+                <div class="icon-name">首页 - 选中</div>
+                <button class="download-btn" onclick="downloadIcon('home', true)">下载 PNG</button>
+                <div class="file-info">保存为: home-active.png</div>
+            </div>
+
+            <!-- 我的图标 - 普通状态 -->
+            <div class="icon-item">
+                <div class="icon-preview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" stroke="#999999" stroke-width="1.5" fill="none"/>
+                        <path d="M6 21C6 17.134 8.686 14 12 14C15.314 14 18 17.134 18 21" stroke="#999999" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="icon-name">我的 - 普通</div>
+                <button class="download-btn" onclick="downloadIcon('profile', false)">下载 PNG</button>
+                <div class="file-info">保存为: profile.png</div>
+            </div>
+
+            <!-- 我的图标 - 选中状态 -->
+            <div class="icon-item">
+                <div class="icon-preview">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" fill="#6F87FF" stroke="#6F87FF" stroke-width="1.5"/>
+                        <path d="M6 21C6 17.134 8.686 14 12 14C15.314 14 18 17.134 18 21" fill="none" stroke="#6F87FF" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="icon-name">我的 - 选中</div>
+                <button class="download-btn" onclick="downloadIcon('profile', true)">下载 PNG</button>
+                <div class="file-info">保存为: profile-active.png</div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 使用说明</h3>
+            <ol>
+                <li><strong>点击"下载 PNG"按钮</strong> - 自动生成并下载对应的PNG图标</li>
+                <li><strong>保存位置</strong> - 将下载的图标保存到项目的 <code>uni-preset-vue-vite/src/static/images/tabbar/</code> 目录</li>
+                <li><strong>替换文件</strong> - 用新图标替换原有的同名文件</li>
+                <li><strong>图标规格</strong> - 生成的PNG图标为 64x64px，适合tabbar使用</li>
+                <li><strong>颜色说明</strong>:
+                    <ul>
+                        <li>普通状态: #999999 (灰色)</li>
+                        <li>选中状态: #6F87FF (主题蓝色)</li>
+                    </ul>
+                </li>
+            </ol>
+            
+            <h3>🎯 图标风格特点</h3>
+            <ul>
+                <li><strong>线条风格</strong> - 简洁的线条设计，与购物车图标保持一致</li>
+                <li><strong>描边粗细</strong> - 1.5px 描边，确保清晰度</li>
+                <li><strong>圆角处理</strong> - 适当的圆角，现代化设计</li>
+                <li><strong>颜色统一</strong> - 遵循应用的整体色彩方案</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function downloadIcon(type, isActive) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const size = 64; // 64x64px 图标
+            
+            canvas.width = size;
+            canvas.height = size;
+            
+            // 创建SVG元素
+            const svgContent = getSVGContent(type, isActive);
+            const svg = new Blob([svgContent], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(svg);
+            
+            const img = new Image();
+            img.onload = function() {
+                // 清除画布并设置白色背景
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, size, size);
+                
+                // 绘制图标，居中且适当缩放
+                const iconSize = size * 0.6; // 图标占画布的60%
+                const x = (size - iconSize) / 2;
+                const y = (size - iconSize) / 2;
+                
+                ctx.drawImage(img, x, y, iconSize, iconSize);
+                
+                // 转换为PNG并下载
+                canvas.toBlob(function(blob) {
+                    const link = document.createElement('a');
+                    link.download = `${type}${isActive ? '-active' : ''}.png`;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    
+                    // 清理
+                    URL.revokeObjectURL(url);
+                    URL.revokeObjectURL(link.href);
+                });
+            };
+            
+            img.src = url;
+        }
+        
+        function getSVGContent(type, isActive) {
+            const color = isActive ? '#6F87FF' : '#999999';
+            const fillColor = isActive ? '#6F87FF' : 'none';
+            
+            if (type === 'home') {
+                if (isActive) {
+                    return `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L4 9V21H8V15H16V21H20V9L12 3Z" fill="${fillColor}" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M9 21V13H15V21" fill="#FFFFFF" stroke="${color}" stroke-width="1.5"/>
+                    </svg>`;
+                } else {
+                    return `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3L4 9V21H8V15H16V21H20V9L12 3Z" stroke="${color}" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+                        <path d="M9 21V13H15V21" stroke="${color}" stroke-width="1.5" fill="none"/>
+                    </svg>`;
+                }
+            } else if (type === 'profile') {
+                if (isActive) {
+                    return `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" fill="${fillColor}" stroke="${color}" stroke-width="1.5"/>
+                        <path d="M6 21C6 17.134 8.686 14 12 14C15.314 14 18 17.134 18 21" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>`;
+                } else {
+                    return `<svg width="64" height="64" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="8" r="4" stroke="${color}" stroke-width="1.5" fill="none"/>
+                        <path d="M6 21C6 17.134 8.686 14 12 14C15.314 14 18 17.134 18 21" stroke="${color}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+                    </svg>`;
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -2,7 +2,9 @@
   <view class="community-home">
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
-      <text class="nav-back iconfont icon-back" @tap="goHome"></text>
+      <view class="back-btn" @tap="goHome">
+        <text class="back-text">←</text>
+      </view>
       <text class="nav-title">宠物社区</text>
       <view class="nav-actions">
         <text class="publish-btn" @tap="goToPublish">
@@ -69,22 +71,33 @@
                   :src="img"
                   mode="aspectFill"
                   @tap.stop="previewImage(item.images, imgIndex)"
-                ></image>
-              </view>
+                ></image>              </view>
             </view>
             
             <!-- 互动信息 -->
             <view class="interaction-bar">
               <view class="interaction-item" @tap.stop="toggleLike(item)">
-                <text class="iconfont" :class="item.isLiked ? 'icon-like-filled' : 'icon-like'"></text>
+                <image 
+                  class="interaction-icon" 
+                  :src="item.isLiked ? '/static/images/community/like-filled.png' : '/static/images/community/like.png'"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.likes }}</text>
               </view>
               <view class="interaction-item" @tap.stop="goToDetail(item)">
-                <text class="iconfont icon-comment"></text>
+                <image 
+                  class="interaction-icon" 
+                  src="/static/images/community/comment.png"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.comments }}</text>
               </view>
               <view class="interaction-item" @tap.stop="toggleCollect(item)">
-                <text class="iconfont" :class="item.isCollected ? 'icon-collect-filled' : 'icon-collect'"></text>
+                <image 
+                  class="interaction-icon" 
+                  :src="item.isCollected ? '/static/images/community/collect-filled.png' : '/static/images/community/collect.png'"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.collects }}</text>
               </view>
             </view>
@@ -119,21 +132,32 @@
                   mode="aspectFill"
                   @tap.stop="previewImage(item.images, imgIndex)"
                 ></image>
-              </view>
-            </view>
+              </view>            </view>
             
             <!-- 互动信息 -->
             <view class="interaction-bar">
               <view class="interaction-item" @tap.stop="toggleLike(item)">
-                <text class="iconfont" :class="item.isLiked ? 'icon-like-filled' : 'icon-like'"></text>
+                <image 
+                  class="interaction-icon" 
+                  :src="item.isLiked ? '/static/images/community/like-filled.png' : '/static/images/community/like.png'"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.likes }}</text>
               </view>
               <view class="interaction-item" @tap.stop="goToDetail(item)">
-                <text class="iconfont icon-comment"></text>
+                <image 
+                  class="interaction-icon" 
+                  src="/static/images/community/comment.png"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.comments }}</text>
               </view>
               <view class="interaction-item" @tap.stop="toggleCollect(item)">
-                <text class="iconfont" :class="item.isCollected ? 'icon-collect-filled' : 'icon-collect'"></text>
+                <image 
+                  class="interaction-icon" 
+                  :src="item.isCollected ? '/static/images/community/collect-filled.png' : '/static/images/community/collect.png'"
+                  mode="aspectFit"
+                ></image>
                 <text class="count">{{ item.collects }}</text>
               </view>
             </view>
@@ -152,6 +176,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import api from '@/utils/api';
+import { processCommunityImages } from '@/utils/imageHelper';
 
 // 分类标签
 const tabs = ['推荐', '最新'];
@@ -181,20 +206,42 @@ const getContentList = async () => {
   
   try {
     const type = currentTab.value === 0 ? 'recommend' : 'latest';
-    const response = await api.community.getCommunityPosts(type, page.value, 10);
+    
+    // 推荐板块：一次性加载所有数据，不使用分页
+    if (currentTab.value === 0) {
+      const response = await api.community.getCommunityPosts(type, 1, 1000); // 设置一个很大的pageSize
       if (response && response.code === 200) {
-      const newData = response.data.list || [];
-      
-      if (page.value === 1) {
-        contentList.value = newData;
+        const allData = response.data.list || [];
+        
+        // 处理图片URL，修正端口号问题
+        const processedData = processCommunityImages(allData);
+        contentList.value = processedData;
+        
+        // 推荐板块不显示"加载更多"
+        hasMore.value = false;
       } else {
-        contentList.value.push(...newData);
+        throw new Error(response?.message || 'API响应异常');
       }
-      
-      hasMore.value = response.data.hasMore || newData.length >= 10;
-      page.value++;
     } else {
-      throw new Error(response?.message || 'API响应异常');
+      // 最新板块：保持原有的分页加载逻辑
+      const response = await api.community.getCommunityPosts(type, page.value, 10);
+      if (response && response.code === 200) {
+        const newData = response.data.list || [];
+        
+        // 处理图片URL，修正端口号问题
+        const processedData = processCommunityImages(newData);
+        
+        if (page.value === 1) {
+          contentList.value = processedData;
+        } else {
+          contentList.value.push(...processedData);
+        }
+        
+        hasMore.value = response.data.hasMore || newData.length >= 10;
+        page.value++;
+      } else {
+        throw new Error(response?.message || 'API响应异常');
+      }
     }
   } catch (error) {
     console.error('获取社区内容失败:', error);
@@ -224,12 +271,22 @@ const switchTab = (index) => {
   currentTab.value = index;
   page.value = 1;
   contentList.value = [];
+  
+  // 切换到推荐板块时，重置hasMore状态
+  if (index === 0) {
+    hasMore.value = false;
+  }
+  
   getContentList();
 };
 
 // 加载更多
 const loadMore = () => {
   if (loading.value || !hasMore.value) return;
+  
+  // 推荐板块不显示加载更多
+  if (currentTab.value === 0) return;
+  
   getContentList();
 };
 
@@ -238,6 +295,11 @@ const onRefresh = async () => {
   refreshing.value = true;
   page.value = 1;
   contentList.value = [];
+  
+  // 推荐板块刷新时重置hasMore状态
+  if (currentTab.value === 0) {
+    hasMore.value = false;
+  }
   
   try {
     await getContentList();
@@ -369,15 +431,23 @@ onUnmounted(() => {
   box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.05);
 }
 
-.nav-back {
+.back-btn {
   position: absolute;
   left: 30rpx;
-  font-size: 38rpx;
-  color: #fff;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
   z-index: 2;
-  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.back-text {
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: bold;
 }
 
 .nav-title {
@@ -571,6 +641,11 @@ onUnmounted(() => {
   
   .iconfont {
     font-size: 32rpx;
+  }
+  
+  .interaction-icon {
+    width: 32rpx;
+    height: 32rpx;
   }
   
   .icon-like-filled,

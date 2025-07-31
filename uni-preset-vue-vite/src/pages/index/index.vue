@@ -1,42 +1,38 @@
 <template>
   <view class="index-container">
-    <!-- 搜索栏 -->
-    <view class="search-bar">
-      <view class="search-input">
-        <text class="iconfont icon-search"></text>
-        <input 
-          type="text" 
-          v-model="searchKeyword"
-          placeholder="搜索商品、医院、保险"
-          @confirm="handleSearch"
-        />
-      </view>
-      <!-- 开发者测试按钮 -->
-      <view class="api-test-btn" @click="runAPITest" v-if="!USE_MOCK">
-        <text>测试API</text>
-      </view>
-      <!-- 显示当前数据源状态 -->
-      <view class="data-source-indicator">
-        <text>{{ USE_MOCK ? 'Mock' : 'API' }}</text>
-      </view>
-    </view>
 
     <!-- 分类导航 -->
     <view class="category-nav">
       <view class="category-item" @click="navigateToPetGoods">
-        <text class="iconfont icon-goods"></text>
+        <image 
+          src="/static/images/category-icons/goods/icon.jpg"
+          mode="aspectFit"
+          class="category-icon"
+        />
         <text>宠物用品</text>
       </view>
       <view class="category-item" @click="navigateToMedical">
-        <text class="iconfont icon-medical"></text>
+        <image 
+          src="/static/images/category-icons/medical/icon.jpg"
+          mode="aspectFit"
+          class="category-icon"
+        />
         <text>优质医院</text>
       </view>
       <view class="category-item" @click="navigateToInsurance">
-        <text class="iconfont icon-insurance"></text>
+        <image 
+          src="/static/images/category-icons/insurance/icon.jpg"
+          mode="aspectFit"
+          class="category-icon"
+        />
         <text>宠物保险</text>
       </view>
       <view class="category-item" @click="navigateToCommunity">
-        <text class="iconfont icon-community"></text>
+        <image 
+          src="/static/images/category-icons/community/icon.jpg"
+          mode="aspectFit"
+          class="category-icon"
+        />
         <text>宠物社区</text>
       </view>
     </view>
@@ -50,7 +46,11 @@
       <scroll-view class="goods-scroll" scroll-x show-scrollbar="false">
         <view class="goods-scroll-container">
           <view class="goods-item" v-for="product in hotProducts" :key="product.id" @click="navigateToDetail(product.id)">
-            <image :src="product.image" mode="aspectFill"></image>
+            <image 
+              :src="(product.images && product.images[0]) || product.coverImage || product.image || '/static/images/pet.png'" 
+              mode="aspectFill"
+              @error="handleImageError"
+            ></image>
             <text class="goods-name">{{ product.name }}</text>
             <text class="goods-price">¥{{ product.price }}</text>
             <text class="goods-sales">{{ product.sales }}人已购买</text>
@@ -67,17 +67,17 @@
       </view>
       <view class="hospital-list">
         <view class="hospital-item" @click="navigateToMedical">
-          <image src="/static/images/pet.png" mode="aspectFill"></image>
+          <image :src="babytangHospitalImg" mode="aspectFill"></image>
           <view class="hospital-info">
-            <text class="hospital-name">香港宠物医院</text>
+            <text class="hospital-name">芭比堂动物医院</text>
             <text class="hospital-address">香港中环</text>
           </view>
         </view>
         <view class="hospital-item" @click="navigateToMedical">
-          <image src="/static/images/pet.png" mode="aspectFill"></image>
+          <image :src="ruipengHospitalImg" mode="aspectFill"></image>
           <view class="hospital-info">
-            <text class="hospital-name">旺角宠物诊所</text>
-            <text class="hospital-address">香港旺角</text>
+            <text class="hospital-name">瑞鹏宠物医院</text>
+            <text class="hospital-address">香港九龙</text>
           </view>
         </view>
       </view>
@@ -91,14 +91,14 @@
       </view>
       <view class="insurance-list">
         <view class="insurance-item" @click="navigateToInsurance">
-          <text class="insurance-name">基础保障计划</text>
-          <text class="insurance-desc">覆盖常见疾病和意外</text>
-          <text class="insurance-price">¥299/年</text>
+          <text class="insurance-name">中国平安爱宠意外险</text>
+          <text class="insurance-desc">全方位保障，含体检</text>
+          <text class="insurance-price">¥477/年</text>
         </view>
         <view class="insurance-item" @click="navigateToInsurance">
-          <text class="insurance-name">全面保障计划</text>
-          <text class="insurance-desc">全方位保障，含体检</text>
-          <text class="insurance-price">¥599/年</text>
+          <text class="insurance-name">蚂蚁保x国泰产险宠物意外医疗保险</text>
+          <text class="insurance-desc">涵盖基础服务</text>
+          <text class="insurance-price">¥60/年</text>
         </view>
       </view>
     </view>
@@ -136,10 +136,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { goodsApi } from '../../utils/api'
-import { USE_MOCK } from '../../utils/config'
-import apiTest from '../../utils/apiTest'
+import { USE_MOCK, getGoodsImageUrl } from '../../utils/config'
+import { formatImageUrl } from '../../utils/imageHelper'
 
-const searchKeyword = ref('')
+// 导入医院图片
+import babytangHospitalImg from '/src/static/images/hospital/babytang-hospital.jpg'
+import ruipengHospitalImg from '/src/static/images/hospital/ruipeng-hospital.jpg'
+
+
 const hotProducts = ref([])
 
 // 获取热门商品推荐
@@ -149,9 +153,9 @@ const getHotProducts = () => {
   });
   
   if (USE_MOCK) {
-    // 使用与商品列表页一致的商品数据生成逻辑
+    // 使用与商品列表页完全一致的商品数据生成逻辑
     const brands = ['皇家', '冠能', '宝路', '萌能', '麦富迪']
-    const categories = ['主食', '零食', '玩具', '日用品', '洗护用品']
+    const categories = ['猫粮', '狗粮', '玩具', '零食', '护毛素', '猫砂', '除臭剂', '沐浴露']
     
     // 生成50个商品
     const mockGoods = []
@@ -166,7 +170,10 @@ const getHotProducts = () => {
         name: `${brands[brandIndex]}${categories[categoryIndex]} ${i}号`,
         price: price,
         sales: sales,
-        image: '/static/images/pet.png',
+        // 🎯 使用配置化的图片URL生成函数，支持环境切换
+        images: [
+          getGoodsImageUrl(categories[categoryIndex], brands[brandIndex])
+        ],
         brand: brands[brandIndex],
         category: categories[categoryIndex]
       })
@@ -180,7 +187,17 @@ const getHotProducts = () => {
     goodsApi.getHotGoods(5)
       .then(res => {
         if (res.data && Array.isArray(res.data)) {
-          hotProducts.value = res.data;
+          // 处理API返回的图片URL，确保使用生产环境地址
+          const processedData = res.data.map(item => {
+            if (item.images && Array.isArray(item.images)) {
+              item.images = item.images.map(img => {
+                // 使用imageHelper处理图片URL
+                return formatImageUrl(img);
+              });
+            }
+            return item;
+          });
+          hotProducts.value = processedData;
         } else {
           console.error('获取热门商品失败: 返回数据格式不正确', res);
           // 如果API未返回数据，使用空数组
@@ -198,19 +215,7 @@ const getHotProducts = () => {
   }
 }
 
-const handleSearch = () => {
-  if (!searchKeyword.value.trim()) {
-    uni.showToast({
-      title: '请输入搜索关键词',
-      icon: 'none'
-    })
-    return
-  }
-  
-  uni.navigateTo({
-    url: `/pages/search/result?keyword=${encodeURIComponent(searchKeyword.value.trim())}`
-  })
-}
+
 
 // 跳转到宠物用品页面
 const navigateToPetGoods = () => {
@@ -247,30 +252,18 @@ const navigateToCommunity = () => {
   })
 }
 
-// API测试函数
-const runAPITest = async () => {
-  try {
-    uni.showLoading({
-      title: '测试API中...'
-    });
-    
-    await apiTest.runAllAPITests();
-    
-    uni.hideLoading();
-    uni.showToast({
-      title: 'API测试完成，请查看控制台',
-      icon: 'none',
-      duration: 3000
-    });
-  } catch (error) {
-    uni.hideLoading();
-    uni.showToast({
-      title: 'API测试失败',
-      icon: 'none'
-    });
-    console.error('API测试失败:', error);
-  }
-};
+// 处理图片加载错误 - 与商品列表页面保持一致
+const handleImageError = (e) => {
+  console.error('❌ [首页热门推荐] 图片加载失败:', {
+    原始URL: e.target.src,
+    元素: e.target
+  })
+  
+  // 图片加载失败时使用默认图片
+  e.target.src = '/static/images/pet.png'
+}
+
+
 
 // 页面加载时获取热门商品数据
 onMounted(() => {
@@ -285,79 +278,9 @@ onMounted(() => {
   padding-bottom: 30rpx;
 }
 
-/* 搜索栏 */
-.search-bar {
-  background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);
-  padding: 20rpx 30rpx;
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-}
 
-.search-input {
-  background-color: #fff;
-  border-radius: 30rpx;
-  height: 70rpx;
-  display: flex;
-  align-items: center;
-  padding: 0 30rpx;
-  flex: 1;
-  
-  .iconfont {
-    font-size: 32rpx;
-    color: #999;
-    margin-right: 10rpx;
-  }
-  
-  input {
-    flex: 1;
-    font-size: 28rpx;
-    color: #333;
-  }
-}
 
-.api-test-btn {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-radius: 20rpx;
-  padding: 15rpx 20rpx;
-  border: 1rpx solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: scale(1.05);
-  }
-  
-  &:active {
-    transform: scale(1.02);
-    background-color: rgba(255, 255, 255, 0.25);
-  }
-  
-  text {
-    color: #fff;
-    font-size: 24rpx;
-  }
-}
 
-.data-source-indicator {
-  background-color: rgba(255, 255, 255, 0.3);
-  border-radius: 15rpx;
-  padding: 10rpx 15rpx;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.4);
-    transform: scale(1.05);
-  }
-  
-  text {
-    color: #fff;
-    font-size: 20rpx;
-    font-weight: 500;
-  }
-}
 
 /* 分类导航 */
 .category-nav {
@@ -387,15 +310,14 @@ onMounted(() => {
     background-color: #f0f2ff;
   }
   
-  .iconfont {
-    font-size: 50rpx;
-    color: #6F87FF;
+  .category-icon {
+    width: 100rpx;
+    height: 100rpx;
     margin-bottom: 10rpx;
     transition: all 0.3s ease;
   }
   
-  &:hover .iconfont {
-    color: #5A6BF5;
+  &:hover .category-icon {
     transform: scale(1.1);
   }
   
