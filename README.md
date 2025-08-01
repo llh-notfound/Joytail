@@ -16,12 +16,22 @@ Before running the project, ensure you have the following installed:
 
 ```
 petpal 5/
-├── uni-preset-vue-vite/          # Main project directory
-│   ├── src/                      # Source code
-│   ├── package.json              # Dependencies and scripts
-│   ├── vite.config.js           # Vite configuration
-│   └── README.md                # This file
-└── [Documentation files]         # Various documentation files
+├── README.md                           # Project setup and running guide
+├── PetPal-API-Documentation-Summary.md # Complete API documentation
+├── uni-preset-vue-vite/               # Main project directory
+│   ├── src/                           # Source code
+│   │   ├── pages/                     # Application pages
+│   │   ├── components/                # Reusable components
+│   │   ├── utils/                     # Utility functions and API
+│   │   └── static/                    # Static assets (images, icons)
+│   ├── package.json                   # Dependencies and scripts
+│   ├── vite.config.js                # Vite configuration
+│   └── index.html                     # Entry HTML file
+├── test/                              # Test files and tools
+│   ├── *.html                        # Test pages and validation tools
+│   ├── *.js                          # Test scripts and automation
+│   └── *.json                        # Postman test collections
+└── [Other documentation files]        # Additional documentation
 ```
 
 ## Installation and Setup
