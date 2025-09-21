@@ -3,7 +3,9 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <text class="nav-title">宠物用品订单</text>
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
     </view>
 
     <!-- 分类标签栏 -->
@@ -43,19 +45,35 @@
         </view>
         
         <view class="order-content">
-          <image class="goods-image" :src="order.image"></image>
-          <view class="order-info">
-            <view class="order-name">{{ order.name }}</view>
-            <view class="order-specs">{{ order.specs }}</view>
-            <view class="order-price">
-              <text>¥{{ order.price }}</text>
-              <text class="order-quantity">x{{ order.quantity }}</text>
+          <!-- 处理商品信息缺失的情况 -->
+          <template v-if="order.goodsInfo && order.goodsInfo.length > 0">
+            <!-- 有商品信息时显示第一个商品 -->
+            <image class="goods-image" :src="order.goodsInfo[0].image || '/static/images/empty-order.png'"></image>
+            <view class="order-info">
+              <view class="order-name">{{ order.goodsInfo[0].name || '商品信息缺失' }}</view>
+              <view class="order-specs">{{ order.goodsInfo[0].specs || '规格信息缺失' }}</view>
+              <view class="order-price">
+                <text>¥{{ order.goodsInfo[0].price || 0 }}</text>
+                <text class="order-quantity">x{{ order.goodsInfo[0].quantity || 1 }}</text>
+              </view>
             </view>
-          </view>
+          </template>
+          <template v-else>
+            <!-- 没有商品信息时显示默认内容 -->
+            <image class="goods-image" src="/static/images/empty-order.png"></image>
+            <view class="order-info">
+              <view class="order-name">商品信息缺失</view>
+              <view class="order-specs">规格信息缺失</view>
+              <view class="order-price">
+                <text>¥0</text>
+                <text class="order-quantity">x1</text>
+              </view>
+            </view>
+          </template>
         </view>
         
         <view class="order-footer">
-          <view class="order-total">合计: ¥{{ order.totalPrice }}</view>
+          <view class="order-total">合计: ¥{{ order.totalAmount || order.totalPrice || order.amount || 0 }}</view>
           <view class="order-actions">
             <button 
               v-if="order.status === '待付款'" 
@@ -140,6 +158,20 @@ const getOrderList = async () => {
     return;
   }
   
+  // 检查是否为未实现的功能
+  if (currentTab.value >= 2) {
+    console.log('🛒 [订单列表] 功能开发中:', tabs[currentTab.value])
+    orderList.value = [];
+    loading.value = false;
+    hasMore.value = false;
+    uni.showToast({
+      title: '功能开发中',
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
+  
   if (USE_MOCK) {
     // Mock模式保持原有逻辑
     setTimeout(() => {
@@ -157,15 +189,8 @@ const getOrderList = async () => {
         // 根据当前标签过滤订单
         if (currentTab.value === 0) { // 全部
           orderList.value = [...mockOrders];
-        } else {
-          const statusMap = {
-            1: '待付款',
-            2: '待发货',
-            3: '待收货',
-            4: '已完成',
-            5: '售后'
-          };
-          orderList.value = mockOrders.filter(order => order.status === statusMap[currentTab.value]);
+        } else if (currentTab.value === 1) { // 待付款
+          orderList.value = mockOrders.filter(order => order.status === '待付款');
         }
         
         console.log('✅ [订单列表] Mock模式获取成功，订单数量:', orderList.value.length)
@@ -190,67 +215,37 @@ const getOrderList = async () => {
     
     const currentStatus = statusParams[currentTab.value];
     
-    // 如果是未实现的标签（待发货、待收货、已完成、售后），显示提示信息
-    if (!currentStatus) {
-      console.log('🛒 [订单列表] 当前标签暂未实现API调用:', tabs[currentTab.value])
-      orderList.value = [];
-      loading.value = false;
-      hasMore.value = false;
-      
-      uni.showToast({
-        title: `${tabs[currentTab.value]}功能开发中`,
-        icon: 'none',
-        duration: 2000
-      });
-      return;
-    }
+    // 调用API获取订单列表
+    const response = await orderApi.getGoodsOrderList(
+      currentStatus,
+      page.value,
+      pageSize.value
+    );
     
-    console.log('🛒 [订单列表] 调用API，状态参数:', currentStatus)
-    
-    const response = await orderApi.getGoodsOrderList(currentStatus, page.value, pageSize.value);
-    
-    console.log('✅ [订单列表] API调用成功:', response)
-    
-    if (page.value === 1) {
-      // 第一页，直接替换数据
-      orderList.value = response.data.items || [];
-    } else {
-      // 非第一页，追加数据
-      orderList.value = [...orderList.value, ...(response.data.items || [])];
-    }
-    
-    // 判断是否还有更多数据
-    hasMore.value = orderList.value.length < response.data.total;
-    
-    console.log('✅ [订单列表] 数据处理完成，当前订单数量:', orderList.value.length, '总数:', response.data.total)
-    
-  } catch (err) {
-    console.error('❌ [订单列表] API调用失败:', err);
-    
-    let errorMessage = '获取订单失败，请重试';
-    if (err.message) {
-      if (err.message.includes('401')) {
-        errorMessage = '登录已过期，请重新登录';
-        setTimeout(() => {
-          uni.navigateTo({
-            url: '/pages/login/login'
-          });
-        }, 1500);
-      } else if (err.message.includes('403')) {
-        errorMessage = '无权限访问';
-      } else if (err.message.includes('500')) {
-        errorMessage = '服务器繁忙，请稍后重试';
+    if (response.code === 200) {
+      if (page.value === 1) {
+        orderList.value = response.data.list;
       } else {
-        errorMessage = err.message;
+        orderList.value = [...orderList.value, ...response.data.list];
       }
+      hasMore.value = response.data.hasMore;
+      console.log('✅ [订单列表] API模式获取成功，订单数量:', orderList.value.length)
+      console.log('📊 [订单列表] 订单数据结构示例:', orderList.value[0])
+      console.log('💰 [订单列表] 第一个订单金额字段:', {
+        totalAmount: orderList.value[0]?.totalAmount,
+        totalPrice: orderList.value[0]?.totalPrice,
+        amount: orderList.value[0]?.amount
+      })
+      console.log('🔍 [订单列表] 第一个订单完整数据结构:', JSON.stringify(orderList.value[0], null, 2))
+    } else {
+      throw new Error(response.message);
     }
-    
+  } catch (error) {
+    console.error('❌ [订单列表] API模式获取失败:', error);
     uni.showToast({
-      title: errorMessage,
-      icon: 'none',
-      duration: 3000
+      title: '获取订单列表失败',
+      icon: 'none'
     });
-    
     orderList.value = [];
   } finally {
     loading.value = false;
@@ -307,6 +302,43 @@ const payOrder = (order) => {
     });
     return;
   }
+  
+  // API模式：处理真实数据结构
+  console.log('开始支付订单:', order);
+  
+  // 构建商品信息（处理可能缺失的数据）
+  let goodsInfo = null;
+  if (order.goodsInfo && order.goodsInfo.length > 0) {
+    goodsInfo = {
+      id: order.goodsInfo[0].id || Date.now(),
+      name: order.goodsInfo[0].name || '商品信息缺失',
+      image: order.goodsInfo[0].image || '/static/images/empty-order.png',
+      specs: order.goodsInfo[0].specs || '规格信息缺失',
+      price: order.goodsInfo[0].price || 0,
+      quantity: order.goodsInfo[0].quantity || 1
+    };
+  } else {
+    goodsInfo = {
+      id: Date.now(),
+      name: '商品信息缺失',
+      image: '/static/images/empty-order.png',
+      specs: '规格信息缺失',
+      price: 0,
+      quantity: 1
+    };
+  }
+  
+  // 将订单数据转换为字符串并进行编码
+  const orderData = encodeURIComponent(JSON.stringify({
+    orderNumber: order.orderNumber,
+    totalPrice: order.totalAmount || order.totalPrice || 0,
+    goodsInfo: goodsInfo
+  }));
+  
+  // 跳转到确认订单页面并传递订单数据
+  uni.navigateTo({
+    url: `/pages/order/confirm-order?orderData=${orderData}&fromPaymentPending=true`
+  });
   
   // API模式：实际支付流程
   console.log('开始支付订单:', order);
@@ -458,6 +490,20 @@ const goBack = () => {
 };
 
 onMounted(() => {
+  // 获取页面参数
+  const pages = getCurrentPages();
+  const currentPage = pages[pages.length - 1];
+  const options = currentPage.$page?.options;
+  
+  // 检查是否有tab参数
+  if (options && options.tab) {
+    const tabIndex = parseInt(options.tab);
+    if (tabIndex >= 0 && tabIndex < tabs.length) {
+      currentTab.value = tabIndex;
+      console.log('🛒 [订单列表] 根据参数切换到标签:', tabs[tabIndex]);
+    }
+  }
+  
   getOrderList();
 });
 </script>
@@ -488,11 +534,23 @@ onMounted(() => {
   color: #333;
 }
 
-.nav-back {
+.back-btn {
   position: absolute;
   left: 30rpx;
-  font-size: 36rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.back-text {
+  font-size: 32rpx;
   color: #333;
+  font-weight: bold;
 }
 
 /* 分类标签栏 */

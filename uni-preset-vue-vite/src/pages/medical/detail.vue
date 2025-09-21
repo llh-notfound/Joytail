@@ -55,87 +55,45 @@
         </view>
       </view>
 
-      <!-- 医院介绍描述 -->
-      <view class="hospital-description" v-if="hospital.description">
-        <text class="description-title">医院介绍</text>
-        <text class="description-content">{{ hospital.description }}</text>
-      </view>
-
-      <!-- 服务项目 -->
-      <view class="hospital-services" v-if="hospital.services && hospital.services.length > 0">
-        <text class="section-title">服务项目</text>
-        <view class="services-grid">
-          <view v-for="(service, index) in hospital.services" :key="index" class="service-item">
-            <text class="service-name">{{ typeof service === 'string' ? service : service.name }}</text>
-            <text v-if="typeof service === 'object' && service.description" class="service-desc">{{ service.description }}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 医生团队 -->
-      <view class="hospital-doctors" v-if="hospital.doctors && hospital.doctors.length > 0">
-        <text class="section-title">医生团队</text>
-        <view class="doctors-grid">
-          <view v-for="doctor in hospital.doctors" :key="doctor.id" class="doctor-item">
-            <image v-if="doctor.avatar" class="doctor-avatar" :src="doctor.avatar" mode="aspectFill" />
-            <view class="doctor-info">
-              <text class="doctor-name">{{ doctor.name }}</text>
-              <text v-if="doctor.title" class="doctor-title">{{ doctor.title }}</text>
-              <text v-if="doctor.experience" class="doctor-experience">{{ doctor.experience }}</text>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <!-- 医院环境图片 -->
-      <view class="hospital-gallery" v-if="hospital.images && hospital.images.length > 0">
-        <text class="section-title">医院环境</text>
-        <view class="image-grid">
-          <view 
-            v-for="(image, index) in hospital.images" 
-            :key="index"
-            class="image-item"
-            @tap="previewImage(image, index)"
-          >
+      <!-- 医院图片轮播 -->
+      <view class="hospital-carousel">
+        <swiper 
+          class="carousel" 
+          indicator-dots 
+          autoplay 
+          circular 
+          interval="3000" 
+          duration="500"
+        >
+          <swiper-item v-for="(image, index) in hospital.images" :key="index" @tap="previewImage(image, index)">
             <image 
-              class="gallery-image" 
+              class="carousel-image" 
               :src="typeof image === 'string' ? image : image.url" 
               mode="aspectFill"
               @error="handleImageError"
             />
-            <view v-if="typeof image === 'object' && image.title" class="image-title">
-              <text>{{ image.title }}</text>
-            </view>
-          </view>
-        </view>
+          </swiper-item>
+          
+          <!-- 如果图片不足4张，显示占位图 -->
+          <swiper-item v-if="hospital.images.length < 1">
+            <image class="carousel-image placeholder" src="/static/images/hospital-placeholder.png" mode="aspectFill" />
+          </swiper-item>
+          <swiper-item v-if="hospital.images.length < 2">
+            <image class="carousel-image placeholder" src="/static/images/hospital-placeholder.png" mode="aspectFill" />
+          </swiper-item>
+          <swiper-item v-if="hospital.images.length < 3">
+            <image class="carousel-image placeholder" src="/static/images/hospital-placeholder.png" mode="aspectFill" />
+          </swiper-item>
+          <swiper-item v-if="hospital.images.length < 4">
+            <image class="carousel-image placeholder" src="/static/images/hospital-placeholder.png" mode="aspectFill" />
+          </swiper-item>
+        </swiper>
       </view>
-
-      <!-- 设施信息 -->
-      <view class="hospital-facilities">
-        <text class="section-title">设施服务</text>
-        <view class="facilities-list">
-          <view v-if="hospital.emergency_24h" class="facility-item emergency">
-            <text>🚨 24小时急诊</text>
-          </view>
-          <view v-if="hospital.parking" class="facility-item">
-            <text>🅿️ 停车位</text>
-          </view>
-          <view v-if="hospital.wifi" class="facility-item">
-            <text>📶 免费WiFi</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 底部操作按钮 -->
-      <view class="action-buttons">
-        <view class="action-btn call-btn" @tap="makeCall">
-          <text class="btn-icon">📞</text>
-          <text class="btn-text">拨打电话</text>
-        </view>
-        <view class="action-btn visit-btn" @tap="openWebsite" v-if="hospital.website">
-          <text class="btn-icon">🌐</text>
-          <text class="btn-text">访问官网</text>
-        </view>
+      
+      <!-- 医院介绍描述 -->
+      <view class="hospital-description">
+        <text class="description-title">医院介绍</text>
+        <text class="description-content">{{ hospital.description || '暂无介绍' }}</text>
       </view>
     </template>
   </view>
@@ -192,16 +150,19 @@ export default {
         console.log('医院详情API响应:', response);
         
         if (response && response.code === 200 && response.data) {
+          // 导入图片处理工具
+          const { formatImageUrl } = await import('@/utils/imageHelper');
+          
           // 处理API响应数据
           this.hospital = {
             ...response.data,
-            // 确保字段映射正确
-            logo: response.data.logo_url || response.data.logo,
-            cover: response.data.cover_url || response.data.cover,
-            // 处理图片数组，支持字符串数组和对象数组
+            // 确保字段映射正确并处理图片URL
+            logo: formatImageUrl(response.data.logo_url || response.data.logo),
+            cover: formatImageUrl(response.data.cover_url || response.data.cover),
+            // 处理图片数组，支持字符串数组和对象数组，同时格式化图片URL
             images: (response.data.images || []).map(img => {
-              if (typeof img === 'string') return img;
-              return img.url || img;
+              if (typeof img === 'string') return formatImageUrl(img);
+              return formatImageUrl(img.url || img);
             })
           };
           
@@ -264,10 +225,8 @@ export default {
       }
     },
     previewImage(image, index) {
-      const images = this.hospital.images.map(img => {
-        if (typeof img === 'string') return img;
-        return img.url || img;
-      });
+      // 这里不需要再处理图片URL，因为hospital.images已经在loadHospitalDetail中处理过了
+      const images = this.hospital.images;
       
       uni.previewImage({
         urls: images,
@@ -459,6 +418,50 @@ export default {
   display: block;
 }
 
+/* 医院轮播图 */
+.hospital-carousel {
+  background-color: #fff;
+  margin: 20rpx 0;
+  border-radius: 12rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.carousel {
+  height: 400rpx;
+  width: 100%;
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s ease;
+}
+
+.carousel-image.placeholder {
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+  color: #aaa;
+  text-align: center;
+}
+
+.carousel .wx-swiper-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.5);
+  margin-left: 8rpx;
+  margin-right: 8rpx;
+}
+
+.carousel .wx-swiper-dot-active {
+  width: 30rpx;
+  background: #fff;
+}
+
 /* 服务项目 */
 .services-grid {
   display: grid;
@@ -591,51 +594,7 @@ export default {
   border-color: #fecaca;
 }
 
-/* 底部操作按钮 */
-.action-buttons {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: #fff;
-  padding: 20rpx 30rpx;
-  border-top: 1rpx solid #eee;
-  display: flex;
-  gap: 20rpx;
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
-}
-
-.action-btn {
-  flex: 1;
-  background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);
-  color: #fff;
-  text-align: center;
-  padding: 25rpx 20rpx;
-  border-radius: 15rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10rpx;
-  font-size: 28rpx;
-  font-weight: 500;
-}
-
-.call-btn {
-  background: linear-gradient(135deg, #52C41A 0%, #389E0D 100%);
-}
-
-.btn-icon {
-  font-size: 32rpx;
-}
-
-.btn-text {
-  font-size: 28rpx;
-}
-
-.action-btn:active {
-  opacity: 0.8;
-  transform: scale(0.98);
-}
+/* 响应式设计 */
 
 /* 响应式设计 */
 @media (max-width: 750rpx) {
@@ -649,11 +608,6 @@ export default {
   .hospital-gallery,
   .hospital-facilities {
     padding: 20rpx;
-  }
-  
-  .action-buttons {
-    padding: 15rpx 20rpx;
-    padding-bottom: calc(15rpx + env(safe-area-inset-bottom));
   }
   
   .image-grid,

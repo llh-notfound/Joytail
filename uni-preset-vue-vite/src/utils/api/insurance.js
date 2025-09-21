@@ -2,21 +2,30 @@
  * 宠物保险相关API
  */
 
-import { get, post, put, del } from '../request';
+import { get, post, put, del, upload } from '../request';
+import { processArrayImages, processObjectImages } from '../imageHelper';
 
 /**
  * 获取保险产品列表
  * @param {object} params - 查询参数
  * @param {number} params.page - 页码
  * @param {number} params.pageSize - 每页数量
+ * @param {string} params.type - 保险类型 (accident/medical/comprehensive/liability)
  * @param {string} params.petType - 宠物类型
  * @param {string} params.ageRange - 年龄范围
  * @param {string} params.priceRange - 价格范围
  * @param {string} params.sortBy - 排序方式
  * @returns {Promise} 请求结果
  */
-export const getInsuranceProducts = (params = {}) => {
-  return get('/insurance/products', params);
+export const getInsuranceProducts = async (params = {}) => {
+  const response = await get('/insurance/products', params);
+  
+  // 如果响应成功且有数据，处理图片URL
+  if (response.code === 200 && response.data && response.data.list) {
+    response.data.list = processArrayImages(response.data.list);
+  }
+  
+  return response;
 };
 
 /**
@@ -24,8 +33,15 @@ export const getInsuranceProducts = (params = {}) => {
  * @param {string} productId - 产品ID
  * @returns {Promise} 请求结果
  */
-export const getInsuranceProductDetail = (productId) => {
-  return get(`/insurance/products/${productId}`);
+export const getInsuranceProductDetail = async (productId) => {
+  const response = await get(`/insurance/products/${productId}`);
+  
+  // 如果响应成功且有数据，处理图片URL
+  if (response.code === 200 && response.data) {
+    response.data = processObjectImages(response.data);
+  }
+  
+  return response;
 };
 
 /**
@@ -154,6 +170,28 @@ export const getInsuranceTerms = (productId) => {
   return get(`/insurance/products/${productId}/terms`);
 };
 
+/**
+ * 上传保险条款图片
+ * @param {string} productId - 保险产品ID
+ * @param {string} filePath - 图片文件路径
+ * @param {boolean} isAdmin - 是否管理员操作
+ * @returns {Promise} 请求结果
+ */
+export const uploadTermsImage = (productId, filePath, isAdmin = true) => {
+  return upload(`/insurance/products/${productId}/terms-image`, filePath, 'termsImage', {}, isAdmin);
+};
+
+/**
+ * 上传理赔流程图片
+ * @param {string} productId - 保险产品ID
+ * @param {string} filePath - 图片文件路径
+ * @param {boolean} isAdmin - 是否管理员操作
+ * @returns {Promise} 请求结果
+ */
+export const uploadClaimProcessImage = (productId, filePath, isAdmin = true) => {
+  return upload(`/insurance/products/${productId}/claim-process-image`, filePath, 'claimProcessImage', {}, isAdmin);
+};
+
 export default {
   getInsuranceProducts,
   getInsuranceProductDetail,
@@ -170,5 +208,7 @@ export default {
   getClaimGuide,
   uploadClaimDocument,
   getInsuranceFAQ,
-  getInsuranceTerms
+  getInsuranceTerms,
+  uploadTermsImage,
+  uploadClaimProcessImage
 };

@@ -1,5 +1,4 @@
-<template>
-  <view class="insurance-detail-container">
+<template>  <view class="insurance-detail-container">
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <view class="back-btn" @click="handleBack">
@@ -8,62 +7,74 @@
       <text class="page-title">保险详情</text>
     </view>
     
-    <!-- 保险产品基本信息 -->
-    <view class="insurance-basic-info">
-      <view class="insurance-header">
-        <image class="insurance-image" :src="insuranceDetail.image" mode="aspectFill"></image>
-        <view class="insurance-title-info">
-          <view class="insurance-name">{{ insuranceDetail.name }}</view>
-          <view class="insurance-company">{{ insuranceDetail.company }}</view>
-        </view>
-      </view>
-      
-      <view class="insurance-summary">
-        <view class="summary-item">
-          <text class="summary-label">适用对象</text>
-          <text class="summary-value">{{ insuranceDetail.petTypes?.join('、') }}</text>
-        </view>
-        <view class="summary-item">
-          <text class="summary-label">保障范围</text>
-          <text class="summary-value">{{ insuranceDetail.coverage }}</text>
-        </view>
-        <view class="summary-item">
-          <text class="summary-label">保障期限</text>
-          <text class="summary-value">{{ insuranceDetail.period }}</text>
-        </view>
-        <view class="price-info">
-          <text class="current-price">¥{{ insuranceDetail.price }}</text>
-          <text class="original-price">¥{{ insuranceDetail.originalPrice }}</text>
-          <text class="price-unit">/{{ insuranceDetail.period }}</text>
-        </view>
-      </view>
+    <!-- 加载状态 -->
+    <view v-if="isLoading" class="loading-container">
+      <view class="loading-text">正在加载保险详情...</view>
     </view>
     
-    <!-- 保险条款说明 -->
-    <collapsible-panel title="保险条款说明">
-      <view v-for="(section, index) in insuranceDetail.terms" :key="index" class="terms-section">
-        <view class="terms-title">{{ section.title }}</view>
-        <view class="terms-content">{{ section.content }}</view>
+    <!-- 保险详情内容 -->
+    <view v-else>
+      <!-- 保险产品基本信息 -->
+      <view class="insurance-basic-info">
+        <view class="insurance-header">
+          <image class="insurance-image" :src="insuranceDetail.image" mode="aspectFill"></image>
+          <view class="insurance-title-info">
+            <view class="insurance-name">{{ insuranceDetail.name }}</view>
+            <view class="insurance-company">{{ insuranceDetail.company }}</view>
+          </view>
+        </view>
+        
+        <view class="insurance-summary">
+          <view class="summary-item">
+            <text class="summary-label">适用对象</text>
+            <text class="summary-value">{{ insuranceDetail.petTypes?.join('、') }}</text>
+          </view>
+          <view class="summary-item">
+            <text class="summary-label">保障范围</text>
+            <text class="summary-value">{{ insuranceDetail.coverage }}</text>
+          </view>
+          <view class="summary-item">
+            <text class="summary-label">保障期限</text>
+            <text class="summary-value">{{ insuranceDetail.period }}</text>
+          </view>
+          <view class="price-info">
+            <text class="current-price">¥{{ insuranceDetail.price }}</text>
+            <text class="original-price">¥{{ insuranceDetail.originalPrice }}</text>
+            <text class="price-unit">/{{ insuranceDetail.period }}</text>
+          </view>
+        </view>
       </view>
-    </collapsible-panel>
-    
-    <!-- 理赔流程 -->
-    <collapsible-panel title="理赔流程">
-      <claim-process-steps :steps="insuranceDetail.claimProcess"/>
-    </collapsible-panel>
-    
-    <!-- 常见问题 -->
-    <collapsible-panel title="常见问题">
-      <view v-for="(faq, index) in insuranceDetail.faqs" :key="index" class="faq-item">
-        <view class="faq-question">{{ faq.question }}</view>
-        <view class="faq-answer">{{ faq.answer }}</view>
-      </view>
-    </collapsible-panel>
-    
-    <!-- 底部操作区 -->
-    <view class="bottom-action-bar">
-      <view class="visit-website-btn" @click="visitWebsite">
-        <text>访问官网</text>
+        <!-- 保险条款说明 -->
+      <collapsible-panel title="保险条款说明">
+        <image-display 
+          :image="insuranceDetail.termsImage" 
+          :height="800"
+          fallbackImage="/static/images/terms-placeholder.png"
+        />
+      </collapsible-panel>
+      
+      <!-- 理赔流程 -->
+      <collapsible-panel title="理赔流程">
+        <image-display 
+          :image="insuranceDetail.claimProcessImage" 
+          :height="600"
+          fallbackImage="/static/images/claim-process-placeholder.png"
+        />
+      </collapsible-panel>
+      
+      <!-- 常见问题 -->
+      <collapsible-panel title="常见问题">
+        <view v-for="(faq, index) in insuranceDetail.faqs" :key="index" class="faq-item">
+          <view class="faq-question">{{ faq.question }}</view>
+          <view class="faq-answer">{{ faq.answer }}</view>
+        </view>
+      </collapsible-panel>
+      
+      <!-- 底部操作区 -->
+      <view class="bottom-action-bar">
+        <view class="visit-website-btn" @click="visitWebsite">
+          <text>访问官网</text>
+        </view>
       </view>
     </view>
   </view>
@@ -72,7 +83,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import CollapsiblePanel from './components/CollapsiblePanel.vue';
-import ClaimProcessSteps from './components/ClaimProcessSteps.vue';
+import ImageDisplay from './components/ImageDisplay.vue';
+import api from '../../utils/api';
+import { BASE_URL } from '../../utils/config';
+import { formatImageUrl, processObjectImages } from '../../utils/imageHelper';
 
 // 从页面参数中获取保险ID
 const insuranceId = ref(null);
@@ -80,7 +94,10 @@ const insuranceId = ref(null);
 // 保险详情数据
 const insuranceDetail = ref({});
 
-// 模拟保险数据
+// 加载状态
+const isLoading = ref(true);
+
+// 模拟保险数据 (作为 fallback)
 const mockInsuranceData = [
   {
     id: 1,
@@ -93,25 +110,10 @@ const mockInsuranceData = [
     image: '/static/images/pet.png',
     period: '1年',
     company: '安心保险',
-    websiteUrl: 'https://www.example.com/insurance/pet-medical',
-    terms: [
-      {
-        title: '投保须知',
-        content: '本产品适用于3个月龄至8周岁的家养宠物犬和家养宠物猫，投保时须提供宠物有效健康证明及免疫证明。每只宠物限投保一份，多投无效。'
-      },
-      {
-        title: '保障内容',
-        content: '本保险提供意外伤害、常见疾病、手术费用等保障。意外伤害包括但不限于车祸、跌落、误食异物等；常见疾病包括但不限于肠胃炎、泌尿系统感染、皮肤病等；手术费用包括手术费、麻醉费、住院费等。'
-      },
-      {
-        title: '责任免除',
-        content: '因投保前已存在的疾病、先天性疾病、遗传性疾病所产生的费用；疫苗接种、绝育、怀孕、分娩等费用；美容、洗牙等非治疗性费用；未经兽医诊断擅自用药产生的费用。'
-      },
-      {
-        title: '等待期',
-        content: '本保险产品疾病保障等待期为30天，意外伤害保障无等待期。等待期内发生的疾病导致的医疗费用，保险公司不承担赔偿责任。'
-      }
-    ],
+    websiteUrl: 'https://www.example.com/insurance/pet-medical',    termsImage: '/static/images/insurance/terms-medical.png',
+    claimProcessImage: '/static/images/insurance/claim-medical.png',
+    // 保留旧的数据结构以便向下兼容
+    terms: [],
     claimProcess: [
       {
         title: '就医治疗',
@@ -165,21 +167,10 @@ const mockInsuranceData = [
     image: '/static/images/pet.png',
     period: '1年',
     company: '守护保险',
-    websiteUrl: 'https://www.example.com/insurance/pet-accident',
-    terms: [
-      {
-        title: '投保须知',
-        content: '本产品适用于3个月龄至10周岁的家养宠物，投保时需提供宠物照片和芯片登记证明(如有)。'
-      },
-      {
-        title: '保障内容',
-        content: '本保险提供宠物意外伤害和第三方责任保障。意外伤害包括交通事故、跌落、误食有毒物质等导致的医疗费用；第三方责任包括宠物造成他人人身伤害或财产损失的赔偿责任。'
-      },
-      {
-        title: '责任免除',
-        content: '故意伤害宠物产生的费用；宠物参与斗狗等非正常活动导致的伤害；宠物未拴绳或未由成年人看管导致的第三方责任事故。'
-      }
-    ],
+    websiteUrl: 'https://www.example.com/insurance/pet-accident',    termsImage: '/static/images/insurance/terms-accident.png',
+    claimProcessImage: '/static/images/insurance/claim-accident.png',
+    // 保留旧的数据结构以便向下兼容
+    terms: [],
     claimProcess: [
       {
         title: '事故报案',
@@ -224,6 +215,103 @@ const mockInsuranceData = [
   }
 ];
 
+// 获取保险产品详情
+const fetchInsuranceDetail = async (productId) => {
+  try {
+    console.log('📍 [保险详情] 开始获取产品详情，ID:', productId);
+    console.log('🔗 [保险详情] 请求URL:', `${api.baseURL || ''}`, '/insurance/products/', productId);
+    isLoading.value = true;
+    
+    const response = await api.insurance.getInsuranceProductDetail(productId);
+    console.log('📥 [保险详情] API响应:', response);
+    
+    if (response.code === 200 && response.data) {      // 映射API响应数据到前端格式
+      // 注意：图片URL已在API层处理
+      const apiData = response.data;
+      console.log('🖼️ [保险详情] API返回的图片URL:', apiData.image);
+
+      insuranceDetail.value = {
+        id: apiData.id,
+        name: apiData.name,
+        company: apiData.company,
+        coverage: apiData.coverage,
+        price: apiData.price,
+        originalPrice: apiData.originalPrice,
+        petTypes: apiData.petTypes || [],
+        type: apiData.type,
+        image: apiData.image,
+        period: apiData.period || '1年',        websiteUrl: apiData.websiteUrl || '',
+        // 保险条款图片
+        termsImage: apiData.termsImage || '/static/images/insurance/terms-placeholder.png',
+        // 理赔流程图片
+        claimProcessImage: apiData.claimProcessImage || '/static/images/insurance/claim-placeholder.png',
+        // 保留旧的数据结构以便向下兼容
+        terms: apiData.terms || [],
+        claimProcess: apiData.claimProcess || [],
+        // 常见问题
+        faqs: apiData.faqs || [
+          {
+            question: '投保时需要注意什么？',
+            answer: '请仔细阅读保险条款，确保宠物符合投保要求。'
+          }
+        ]
+      };
+      console.log('✅ [保险详情] 数据映射完成:', insuranceDetail.value);
+    } else {
+      console.warn('⚠️ [保险详情] API返回格式异常:', response);
+      // 使用 mock 数据作为 fallback
+      fallbackToMockData(productId);
+    }  } catch (error) {
+    console.error('❌ [保险详情] API请求失败:', error);
+    
+    // 显示更具体的错误信息
+    let errorMsg = '网络请求失败';
+    if (error.statusCode) {
+      errorMsg = `服务器返回错误(${error.statusCode})`;
+    } else if (error.errMsg) {
+      if (error.errMsg.includes('timeout')) {
+        errorMsg = '请求超时';
+      } else if (error.errMsg.includes('abort')) {
+        errorMsg = '请求被中断';
+      } else if (error.errMsg.includes('not found')) {
+        errorMsg = '未找到资源(404)';
+      }
+    }
+    
+    // 提示用户
+    uni.showToast({
+      title: errorMsg,
+      icon: 'none',
+      duration: 3000
+    });
+    
+    // 使用 mock 数据作为 fallback
+    fallbackToMockData(productId);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// 回退到 Mock 数据
+const fallbackToMockData = (productId) => {
+  console.log('🔄 [保险详情] 使用 Mock 数据作为备选方案');
+  const detail = mockInsuranceData.find(item => item.id === parseInt(productId));
+  if (detail) {
+    insuranceDetail.value = detail;
+    uni.showToast({
+      title: '正在使用演示数据',
+      icon: 'none',
+      duration: 2000
+    });
+  } else {
+    insuranceDetail.value = mockInsuranceData[0] || {};
+    uni.showToast({
+      title: '未找到相关保险产品',
+      icon: 'none'
+    });
+  }
+};
+
 // 初始化页面
 onMounted(() => {
   const pages = getCurrentPages();
@@ -232,22 +320,15 @@ onMounted(() => {
   
   // 获取保险ID
   if (options && options.id) {
-    insuranceId.value = parseInt(options.id);
-    // 根据ID查找保险详情
-    const detail = mockInsuranceData.find(item => item.id === insuranceId.value);
-    if (detail) {
-      insuranceDetail.value = detail;
-    } else {
-      // 如果找不到对应ID的保险，使用第一个作为默认值
-      insuranceDetail.value = mockInsuranceData[0];
-      uni.showToast({
-        title: '未找到相关保险产品',
-        icon: 'none'
-      });
-    }
+    insuranceId.value = options.id;
+    console.log('📍 [保险详情] 获取到产品ID:', insuranceId.value);
+    
+    // 从 API 获取详情
+    fetchInsuranceDetail(insuranceId.value);
   } else {
-    // 如果没有传入ID，使用第一个作为默认值
-    insuranceDetail.value = mockInsuranceData[0];
+    console.warn('⚠️ [保险详情] 未获取到产品ID，使用默认数据');
+    // 如果没有传入ID，使用第一个 mock 数据作为默认值
+    fallbackToMockData('1');
   }
 });
 
@@ -439,9 +520,24 @@ const visitWebsite = () => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);
-  color: #fff;
+  background: linear-gradient(135deg, #6F87FF 0%, #5A6BF5 100%);  color: #fff;
   font-size: 28rpx;
   font-weight: 500;
 }
-</style> 
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400rpx;
+  background-color: #fff;
+  margin: 20rpx;
+  border-radius: 12rpx;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #999;
+}
+</style>

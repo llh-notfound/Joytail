@@ -77,6 +77,7 @@ import InsuranceCard from './components/InsuranceCard.vue';
 import PopupFilter from './components/PopupFilter.vue';
 import api from '@/utils/api';
 import { BASE_URL } from '@/utils/config';
+import { processArrayImages } from '@/utils/imageHelper';
 
 // 筛选状态
 const showTypeFilter = ref(false);
@@ -128,8 +129,7 @@ const loadInsuranceProducts = async (reset = false) => {
       page: currentPage.value,
       pageSize: pageSize.value
     };
-    
-    // 添加筛选条件
+      // 添加筛选条件
     if (selectedType.value && selectedType.value !== '全部') {
       // 将中文类型名映射为英文类型
       const typeMap = {
@@ -138,7 +138,7 @@ const loadInsuranceProducts = async (reset = false) => {
         '综合险': 'comprehensive',
         '责任险': 'liability'
       };
-      params.petType = typeMap[selectedType.value];
+      params.type = typeMap[selectedType.value];
     }
     
     if (selectedPriceRange.value && selectedPriceRange.value.label !== '全部') {
@@ -150,10 +150,10 @@ const loadInsuranceProducts = async (reset = false) => {
     
     const response = await api.insurance.getInsuranceProducts(params);
     
-    console.log('📥 [保险列表] API响应:', response);
-    
-    if (response.code === 200) {
+    console.log('📥 [保险列表] API响应:', response);    if (response.code === 200) {
+      // 获取API返回的保险产品列表（图片URL已在API层处理）
       const newProducts = response.data.list || [];
+      console.log('🖼️ [保险列表] 获取产品数据', newProducts.length);
       
       if (reset) {
         insurances.value = newProducts;
@@ -165,7 +165,7 @@ const loadInsuranceProducts = async (reset = false) => {
       hasMore.value = newProducts.length === pageSize.value;
       if (!reset) {
         currentPage.value++;
-      }    } else {
+      }} else {
       console.error('保险产品API返回错误:', response);
       uni.showToast({
         title: response.message || '加载失败',

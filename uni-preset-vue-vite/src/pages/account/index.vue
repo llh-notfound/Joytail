@@ -3,13 +3,15 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <text class="nav-title">账户工具</text>
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
     </view>
 
     <!-- 账户信息卡片 -->
     <view class="account-card">
       <view class="account-header">
-        <image class="user-avatar" :src="userInfo.avatar || '/static/images/default-avatar.png'" mode="aspectFill"></image>
+        <image class="user-avatar" :src="userInfo.avatar || '/static/images/default-avatar-mao.jpg'" mode="aspectFill"></image>
         <view class="user-info">
           <text class="user-name">{{ userInfo.nickname || '未登录' }}</text>
           <text class="user-level">{{ userInfo.level || '普通会员' }}</text>
@@ -132,11 +134,23 @@ onMounted(() => {
   color: #333;
 }
 
-.nav-back {
+.back-btn {
   position: absolute;
   left: 30rpx;
-  font-size: 36rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.back-text {
+  font-size: 32rpx;
   color: #333;
+  font-weight: bold;
 }
 
 /* 账户信息卡片 */

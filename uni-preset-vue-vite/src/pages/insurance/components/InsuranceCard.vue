@@ -1,7 +1,7 @@
 <template>
   <view class="insurance-card">
     <view class="card-left">
-      <image class="insurance-image" :src="insurance.image" mode="aspectFill"></image>
+      <image class="insurance-image" :src="formatImageUrl(insurance.image)" mode="aspectFill"></image>
     </view>
     <view class="card-right">
       <view class="insurance-name">{{ insurance.name }}</view>
@@ -34,6 +34,8 @@
 </template>
 
 <script setup>
+import { formatImageUrl } from '../../../utils/imageHelper';
+
 // 接收保险产品数据
 const props = defineProps({
   insurance: {

@@ -3,7 +3,9 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <text class="nav-title">我的社区</text>
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
     </view>
 
     <!-- 分类标签栏 -->
@@ -62,18 +64,30 @@
         
         <view class="content-footer">
           <view class="interaction-info">
-            <text class="interaction-item">
-              <text class="iconfont icon-like"></text>
+            <view class="interaction-item">
+              <image 
+                class="interaction-icon" 
+                src="/static/images/community/like.png"
+                mode="aspectFit"
+              ></image>
               <text>{{ item.likes }}</text>
-            </text>
-            <text class="interaction-item">
-              <text class="iconfont icon-comment"></text>
+            </view>
+            <view class="interaction-item">
+              <image 
+                class="interaction-icon" 
+                src="/static/images/community/comment.png"
+                mode="aspectFit"
+              ></image>
               <text>{{ item.comments }}</text>
-            </text>
-            <text class="interaction-item">
-              <text class="iconfont icon-collect"></text>
+            </view>
+            <view class="interaction-item">
+              <image 
+                class="interaction-icon" 
+                src="/static/images/community/collect.png"
+                mode="aspectFit"
+              ></image>
               <text>{{ item.collects }}</text>
-            </text>
+            </view>
           </view>
         </view>
       </view>
@@ -118,6 +132,39 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import api from '@/utils/api';
+import { processCommunityImages } from '@/utils/imageHelper';
+
+// 时间格式化函数
+const formatTime = (timestamp) => {
+  if (!timestamp) return '';
+  
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diff = now - date;
+  
+  // 小于1分钟
+  if (diff < 60000) {
+    return '刚刚';
+  }
+  // 小于1小时
+  if (diff < 3600000) {
+    return `${Math.floor(diff / 60000)}分钟前`;
+  }
+  // 小于24小时
+  if (diff < 86400000) {
+    return `${Math.floor(diff / 3600000)}小时前`;
+  }
+  // 小于30天
+  if (diff < 2592000000) {
+    return `${Math.floor(diff / 86400000)}天前`;
+  }
+  
+  // 超过30天显示具体日期
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 // 分类标签
 const tabs = ['我的发布', '我的收藏', '我的点赞', '我的评论'];
@@ -145,30 +192,70 @@ const getContentList = async () => {
     };
     
     const type = typeMap[currentTab.value];
+    
+    // 显示加载提示
+    if (page.value === 1) {
+      uni.showLoading({
+        title: '加载中...',
+        mask: true
+      });
+    }
+    
     const response = await api.community.getMyCommunityContent(type, page.value, pageSize.value);
     
     if (response && response.code === 200) {
       const newData = response.data.list || [];
       
+      // 处理数据，添加互动时间格式化
+      // 处理图片URL，修正端口号问题
+      const processedData = processCommunityImages(newData).map(item => ({
+        ...item,
+        interactTime: formatTime(item.interactTime),
+        // 根据不同类型显示不同的互动信息
+        interactInfo: type === 'comments' ? item.commentContent : null
+      }));
+      
       if (page.value === 1) {
-        contentList.value = newData;
+        contentList.value = processedData;
       } else {
-        contentList.value.push(...newData);
+        contentList.value.push(...processedData);
       }
       
       hasMore.value = response.data.hasMore || false;
       page.value++;
+      
+      // 如果是第一页且没有数据，显示空状态提示
+      if (page.value === 1 && processedData.length === 0) {
+        const emptyTips = {
+          posts: '还没有发布过帖子',
+          collects: '还没有收藏的帖子',
+          likes: '还没有点赞的帖子',
+          comments: '还没有评论过帖子'
+        };
+        uni.showToast({
+          title: emptyTips[type],
+          icon: 'none',
+          duration: 2000
+        });
+      }
     } else {
       throw new Error(response?.message || 'API响应异常');
     }
   } catch (error) {
     console.error('获取我的社区内容失败:', error);
     
-    // 显示错误提示
-    uni.showToast({
-      title: error.message || '加载失败，请重试',
-      icon: 'none',
-      duration: 3000
+    // 显示错误提示，并提供重试按钮
+    uni.showModal({
+      title: '加载失败',
+      content: error.message || '获取数据失败，是否重试？',
+      confirmText: '重试',
+      success: (res) => {
+        if (res.confirm) {
+          // 重置页码并重试
+          page.value = 1;
+          getContentList();
+        }
+      }
     });
     
     // 如果是首次加载失败，显示空状态
@@ -180,6 +267,7 @@ const getContentList = async () => {
     hasMore.value = false;
   } finally {
     loading.value = false;
+    uni.hideLoading();
   }
 };
 
@@ -564,6 +652,11 @@ onUnmounted(() => {
   
   .iconfont {
     font-size: 28rpx;
+  }
+  
+  .interaction-icon {
+    width: 28rpx;
+    height: 28rpx;
   }
 }
 

@@ -85,8 +85,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { orderApi } from '../../utils/api'
+import { addressApi } from '../../utils/api'
+import { USE_MOCK } from '../../utils/config'
 
 // 订单商品
 const orderItems = ref([])
@@ -316,19 +318,123 @@ onMounted(() => {
     }
   }
   
-  // 获取默认地址（模拟数据）
-  selectedAddress.value = {
-    id: 1,
-    name: '张三',
-    phone: '138****1234',
-    province: '广东省',
-    city: '深圳市',
-    district: '南山区',
-    detailAddress: '科技园1号楼101室',
-    isDefault: true
-  }
+  // 获取默认地址
+  loadDefaultAddress()
+  
+  // 监听地址选择事件
+  uni.$on('addressSelected', handleAddressSelected)
+  
+  // 监听默认地址更新事件
+  uni.$on('defaultAddressUpdated', handleDefaultAddressUpdated)
 })
 
+// 页面卸载时移除事件监听
+onUnmounted(() => {
+  uni.$off('addressSelected', handleAddressSelected)
+  uni.$off('defaultAddressUpdated', handleDefaultAddressUpdated)
+})
+
+// 处理地址选择事件
+const handleAddressSelected = (address) => {
+  console.log('收到地址选择事件:', address)
+  
+  // 将地址数据转换为确认订单页面需要的格式
+  selectedAddress.value = {
+    id: address.id,
+    name: address.name,
+    phone: address.phone,
+    province: address.regionArray?.[0] || '',
+    city: address.regionArray?.[1] || '',
+    district: address.regionArray?.[2] || '',
+    detailAddress: address.detail || '',
+    isDefault: address.isDefault
+  }
+  
+  console.log('✅ 已更新选择的地址:', selectedAddress.value)
+}
+
+// 处理默认地址更新事件
+const handleDefaultAddressUpdated = (address) => {
+  console.log('收到默认地址更新事件:', address)
+  
+  // 如果当前没有选择地址，或者当前选择的就是这个地址，则更新为新的默认地址
+  if (!selectedAddress.value || selectedAddress.value.id === address.id) {
+    // 将地址数据转换为确认订单页面需要的格式
+    selectedAddress.value = {
+      id: address.id,
+      name: address.name,
+      phone: address.phone,
+      province: address.regionArray?.[0] || '',
+      city: address.regionArray?.[1] || '',
+      district: address.regionArray?.[2] || '',
+      detailAddress: address.detail || '',
+      isDefault: address.isDefault
+    }
+    
+    console.log('✅ 已更新为新的默认地址:', selectedAddress.value)
+  }
+}
+
+// 加载默认地址
+const loadDefaultAddress = async () => {
+  try {
+    if (USE_MOCK) {
+      // Mock模式：从本地存储获取地址列表
+      const addressListStr = uni.getStorageSync('addressList')
+      if (addressListStr) {
+        const addressList = JSON.parse(addressListStr)
+        
+        // 查找默认地址
+        const defaultAddress = addressList.find(addr => addr.isDefault === true)
+        
+        if (defaultAddress) {
+          // 将地址数据转换为确认订单页面需要的格式
+          selectedAddress.value = {
+            id: defaultAddress.id,
+            name: defaultAddress.name,
+            phone: defaultAddress.phone,
+            province: defaultAddress.regionArray?.[0] || '',
+            city: defaultAddress.regionArray?.[1] || '',
+            district: defaultAddress.regionArray?.[2] || '',
+            detailAddress: defaultAddress.detail || '',
+            isDefault: defaultAddress.isDefault
+          }
+          console.log('✅ 已加载默认地址:', selectedAddress.value)
+        } else {
+          console.log('⚠️ 未找到默认地址')
+          selectedAddress.value = null
+        }
+      } else {
+        console.log('⚠️ 本地存储中没有地址数据')
+        selectedAddress.value = null
+      }
+    } else {
+      // API模式：调用后端接口
+      const response = await addressApi.getDefaultAddress()
+      
+      if (response.code === 200 && response.data) {
+        // 将地址数据转换为确认订单页面需要的格式
+        selectedAddress.value = {
+          id: response.data.id,
+          name: response.data.name,
+          phone: response.data.phone,
+          province: response.data.regionArray?.[0] || '',
+          city: response.data.regionArray?.[1] || '',
+          district: response.data.regionArray?.[2] || '',
+          detailAddress: response.data.detail || '',
+          isDefault: response.data.isDefault
+        }
+        console.log('✅ 已加载默认地址:', selectedAddress.value)
+      } else {
+        console.log('⚠️ 未找到默认地址')
+        selectedAddress.value = null
+      }
+    }
+  } catch (e) {
+    console.error('❌ 加载默认地址失败:', e)
+    selectedAddress.value = null
+  }
+}
 </script>
 
 <style lang="scss">

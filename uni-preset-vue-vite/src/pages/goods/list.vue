@@ -70,7 +70,12 @@
           :key="index"
           @click="navigateToDetail(item.id)"
         >
-          <image :src="item.image" mode="aspectFill" class="goods-image"></image>
+          <image 
+            :src="(item.images && item.images[0]) || item.coverImage || item.image || '/static/images/pet.png'" 
+            mode="aspectFill" 
+            class="goods-image"
+            @error="handleImageError"
+          ></image>
           <view class="goods-info">
             <text class="goods-name">{{ item.name }}</text>
             <text class="goods-price">¥{{ item.price }}</text>
@@ -161,8 +166,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { USE_MOCK, BASE_URL } from '../../utils/config'
+import { USE_MOCK, BASE_URL, getGoodsImageUrl } from '../../utils/config'
 import { goodsApi } from '../../utils/api'
+import { formatImageUrl, processArrayImages } from '../../utils/imageHelper'
 
 // 搜索关键词
 const searchKeyword = ref('')
@@ -271,14 +277,25 @@ const loadData = () => {
           name: `${brands[brandIndex]}${categories[categoryIndex]} ${index + 1}号`,
           price: price,
           sales: sales,
-          image: '/static/images/pet.png',
+          // 🎯 使用配置化的图片URL生成函数，支持环境切换
+          images: [
+            getGoodsImageUrl(categories[categoryIndex], brands[brandIndex])
+          ],
           brand: brands[brandIndex],
           category: categories[categoryIndex]
         })
       }
       
+      // 模拟数据已经包含完整URL，无需处理
+      const processedMockGoods = mockGoods;
+      
+      // 打印处理前后的第一个商品数据，用于调试
+      console.log('🖼️ [模拟数据] 商品图片路径:', {
+        images: mockGoods[0].images && mockGoods[0].images[0]
+      });
+      
       // 更新商品列表
-      allGoods.value = [...allGoods.value, ...mockGoods]
+      allGoods.value = [...allGoods.value, ...processedMockGoods]
       currentPage.value++
       hasMore.value = currentPage.value <= 5 // 模拟最多5页数据
       
@@ -333,7 +350,32 @@ const loadData = () => {
       console.log('✅ [商品筛选] API响应:', res)
       
       if (res.data && res.data.items) {
-        allGoods.value = [...allGoods.value, ...res.data.items]
+        // 打印API返回的原始图片数据
+        if (res.data.items.length > 0) {
+          console.log('🖼️ [API数据] 原始图片路径:', {
+            images: res.data.items[0].images && res.data.items[0].images[0]
+          });
+        }
+        
+        // 处理API返回的图片URL，确保使用生产环境地址
+        const processedItems = res.data.items.map(item => {
+          if (item.images && Array.isArray(item.images)) {
+            item.images = item.images.map(img => {
+              // 使用imageHelper处理图片URL
+              return formatImageUrl(img);
+            });
+          }
+          return item;
+        });
+        
+        // 打印处理后的图片数据
+        if (processedItems.length > 0) {
+          console.log('🖼️ [API数据] 处理后图片路径:', {
+            images: processedItems[0].images && processedItems[0].images[0]
+          });
+        }
+        
+        allGoods.value = [...allGoods.value, ...processedItems]
         currentPage.value++
         hasMore.value = res.data.items.length < res.data.total
         
@@ -446,8 +488,35 @@ const navigateToDetail = (id) => {
   })
 }
 
+// 处理图片加载错误
+const handleImageError = (e) => {
+  console.error('❌ [商品列表] 图片加载失败:', {
+    原始URL: e.target.src,
+    元素: e.target
+  })
+  
+  // 记录失败URL的详细信息
+  try {
+    const failedUrl = e.target.src;
+    console.error('❌ [图片失败详情]', {
+      完整URL: failedUrl,
+      是否绝对路径: failedUrl.startsWith('http'),
+      URL解码后: decodeURIComponent(failedUrl)
+    });
+  } catch (err) {
+    console.error('❌ [图片URL分析失败]', err);
+  }
+  
+  // 将错误的图片URL替换为默认图片
+  e.target.src = '/static/images/pet.png'
+}
+
 // 页面加载时初始化数据
 onMounted(() => {
+  console.log('🔍 [商品列表] 页面挂载，当前模式:', USE_MOCK ? '模拟数据模式' : 'API数据模式')
+  console.log('🔍 [商品列表] 后端API地址:', BASE_URL)
+  
+  // 初始化数据
   loadData()
 })
 </script>
@@ -593,6 +662,7 @@ onMounted(() => {
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
+      line-clamp: 2;
       height: 80rpx;
     }
     

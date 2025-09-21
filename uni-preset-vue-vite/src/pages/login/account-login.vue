@@ -275,7 +275,7 @@ const handleSubmit = () => {
           token: userData.token,
           userId: userData.userId,
           nickname: userData.nickname || username.value,
-          avatar: userData.avatar || '/static/images/default-avatar.png',
+          avatar: userData.avatar || '/static/images/default-avatar-mao.jpg',
           memberLevel: userData.memberLevel || '普通会员',
           petAvatar: userData.petAvatar || '/static/images/pet.png'
         }));

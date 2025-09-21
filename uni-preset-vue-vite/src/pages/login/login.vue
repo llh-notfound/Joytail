@@ -2,7 +2,7 @@
   <view class="login-container">
     <view class="login-header">
       <image class="logo" src="/static/images/logo.png"></image>
-      <text class="welcome">欢迎使用petpal</text>
+      <text class="welcome">欢迎使用Joytail</text>
     </view>
     
     <view class="login-options">
@@ -10,14 +10,14 @@
         <view class="login-title">登录/注册</view>
         <view class="login-desc">登录后享受更多会员特权</view>
         
-        <!-- 微信登录按钮 -->
-        <button class="wechat-login-btn" open-type="getUserInfo" @getuserinfo="handleWechatLogin">
+        <!-- 微信登录按钮 - 已隐藏 -->
+        <button class="wechat-login-btn" open-type="getUserInfo" @getuserinfo="handleWechatLogin" v-if="false">
           <text class="wechat-icon iconfont icon-wechat"></text>
           <text>微信一键登录</text>
         </button>
         
-        <!-- 手机号登录按钮 -->
-        <view class="phone-login-btn" @tap="goToPhoneLogin">
+        <!-- 手机号登录按钮 - 已隐藏 -->
+        <view class="phone-login-btn" @tap="goToPhoneLogin" v-if="false">
           <text class="phone-icon iconfont icon-phone"></text>
           <text>手机号登录</text>
         </view>

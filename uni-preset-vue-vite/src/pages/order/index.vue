@@ -3,7 +3,9 @@
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
       <text class="nav-title">订单管理</text>
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
     </view>
 
     <!-- 订单类型列表 -->
@@ -101,11 +103,23 @@ onMounted(() => {
   color: #333;
 }
 
-.nav-back {
+.back-btn {
   position: absolute;
   left: 30rpx;
-  font-size: 36rpx;
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.back-text {
+  font-size: 32rpx;
   color: #333;
+  font-weight: bold;
 }
 
 .order-type-list {

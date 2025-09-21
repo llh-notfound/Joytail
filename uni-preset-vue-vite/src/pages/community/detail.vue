@@ -2,7 +2,9 @@
   <view class="detail-page">
     <!-- 顶部导航栏 -->
     <view class="nav-bar">
-      <text class="nav-back iconfont icon-back" @tap="goBack"></text>
+      <view class="back-btn" @tap="goBack">
+        <text class="back-text">←</text>
+      </view>
       <text class="nav-title">动态详情</text>
     </view>
 
@@ -31,19 +33,30 @@
           ></image>
         </view>
       </view>
-      
-      <!-- 互动信息 -->
+        <!-- 互动信息 -->
       <view class="interaction-bar">
         <view class="interaction-item" @tap="toggleLike">
-          <text class="iconfont" :class="contentDetail.isLiked ? 'icon-like-filled' : 'icon-like'"></text>
+          <image 
+            class="interaction-icon" 
+            :src="contentDetail.isLiked ? '/static/images/community/like-filled.png' : '/static/images/community/like.png'"
+            mode="aspectFit"
+          ></image>
           <text class="count">{{ contentDetail.likes }}</text>
         </view>
         <view class="interaction-item">
-          <text class="iconfont icon-comment"></text>
+          <image 
+            class="interaction-icon" 
+            src="/static/images/community/comment.png"
+            mode="aspectFit"
+          ></image>
           <text class="count">{{ contentDetail.comments }}</text>
         </view>
         <view class="interaction-item" @tap="toggleCollect">
-          <text class="iconfont" :class="contentDetail.isCollected ? 'icon-collect-filled' : 'icon-collect'"></text>
+          <image 
+            class="interaction-icon" 
+            :src="contentDetail.isCollected ? '/static/images/community/collect-filled.png' : '/static/images/community/collect.png'"
+            mode="aspectFit"
+          ></image>
           <text class="count">{{ contentDetail.collects }}</text>
         </view>
       </view>
@@ -93,6 +106,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import api from '@/utils/api';
+import { processCommunityImages } from '@/utils/imageHelper';
 
 const contentDetail = ref({
   id: '',
@@ -121,7 +135,9 @@ const getPostDetail = async (postId) => {
     const response = await api.community.getPostDetail(postId);
     
     if (response && response.code === 200) {
-      contentDetail.value = response.data;
+      // 处理图片URL，修正端口号问题
+      const processedData = processCommunityImages([response.data])[0];
+      contentDetail.value = processedData;
     } else {
       throw new Error(response?.message || 'API响应异常');
     }
@@ -303,15 +319,23 @@ const goBack = () => {
   font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
 }
 
-.nav-back {
+.back-btn {
   position: absolute;
   left: 30rpx;
-  font-size: 38rpx;
-  color: #fff;
-  font-family: 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
-  top: 50%;
-  transform: translateY(-50%);
+  width: 60rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
   z-index: 2;
+}
+
+.back-text {
+  font-size: 32rpx;
+  color: #fff;
+  font-weight: bold;
 }
 
 /* 内容详情 */
@@ -397,6 +421,11 @@ const goBack = () => {
   
   .iconfont {
     font-size: 32rpx;
+  }
+  
+  .interaction-icon {
+    width: 32rpx;
+    height: 32rpx;
   }
   
   .icon-like-filled,
